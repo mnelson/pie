@@ -13,21 +13,6 @@ pie.formView = pie.activeView.extend('formView', {
     this._super();
   },
 
-  // the process of applying form data to the model.
-  applyFieldsToModel: function(form) {
-    var data = this.formData(form);
-    this.model.sets(data);
-  },
-
-  // the data coming from the UI that should be applied to the model before validation
-  formData: function(form) {
-    var args = pie.array.map(this.options.fields, 'name');
-
-    args.push(form);
-
-    return this.parseFields.apply(this, args);
-  },
-
   handleErrors: function() {},
 
   normalizeFormOptions: function(options) {
@@ -58,13 +43,13 @@ pie.formView = pie.activeView.extend('formView', {
 
   // the data to be sent from the server.
   // by default these are the defined fields extracted out of the model.
-  submissionData: function(form) {
+  submissionData: function() {
     var fieldNames = pie.array.map(this.options.fields, 'name');
     return this.model.gets(fieldNames);
   },
 
   submitForm: function(form) {
-    var data = this.submissionData(form);
+    var data = this.submissionData();
 
     app.ajax.ajax(pie.object.merge({
       url: form.getAttribute('action'),
@@ -73,11 +58,12 @@ pie.formView = pie.activeView.extend('formView', {
     }, this.options.ajax));
   },
 
-  validateAndSubmitForm: function(e) {
+  handleSubmitClicked: function(e) {
     e.preventDefault();
+    this.validateAndSubmitForm(e);
+  },
 
-    this.applyFieldsToModel(e.delegateTarget);
-
+  validateAndSubmitForm: pie.fn.debounce(function(e) {
     this.model.validateAll(function(bool) {
       if(bool) {
         this.submitForm(e.delegateTarget);
@@ -85,6 +71,7 @@ pie.formView = pie.activeView.extend('formView', {
         this.handleErrors();
       }
     }.bind(this), this.options.validateImmediately);
-  }
+  }, 300)
+
 
 }, pie.mixins.bindings);
