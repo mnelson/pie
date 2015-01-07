@@ -1306,7 +1306,7 @@ pie.mixins.bindings = (function(){
     },
 
     boolean: function(raw) {
-      return !!raw;
+      return !!parseInt(raw, 10);
     },
 
     number: function(raw) {
