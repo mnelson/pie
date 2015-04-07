@@ -1,7 +1,15 @@
+var Model     = require('model');
+var Cache     = require('cache');
+var Route     = require('route');
+var Arr       = require('extensions/array');
+var Obj       = require('extensions/object');
+var Str       = require('extensions/string');
+var Container = require('mixins/container');
+
 // # Pie Router
 //
 // An interface for declaring, processing, and determing a collection of routes.
-pie.router = pie.model.extend('router', {
+module.exports = Model.extend('router', {
 
   // **pie.router.init**
   //
@@ -11,11 +19,11 @@ pie.router = pie.model.extend('router', {
   init: function(app, options) {
     this._super({
       root: options && options.root || '/'
-    }, pie.object.merge({
+    }, Obj.merge({
       app: app
     }, options));
 
-    this.cache = new pie.cache();
+    this.cache = new Cache();
     this.compute('rootRegex', 'root');
   },
 
@@ -38,7 +46,7 @@ pie.router = pie.model.extend('router', {
   // ```
   changedUrl: function(changes) {
     var current = this.app.parsedUrl;
-    return this.path(current.get('route.name') || current.get('path'), pie.object.merge({}, current.get('data'), changes));
+    return this.path(current.get('route.name') || current.get('path'), Obj.merge({}, current.get('data'), changes));
   },
 
   // **pie.router.findRoute**
@@ -55,11 +63,11 @@ pie.router = pie.model.extend('router', {
   },
 
   findDirectMatch: function(nameOrPath) {
-    return pie.array.detect(this.children, function(r){ return r.isDirectMatch(nameOrPath); });
+    return Arr.detect(this.children, function(r){ return r.isDirectMatch(nameOrPath); });
   },
 
   findPatternMatch: function(nameOrPath) {
-    return pie.array.detect(this.children, function(r){ return r.isMatch(nameOrPath); });
+    return Arr.detect(this.children, function(r){ return r.isMatch(nameOrPath); });
   },
 
 
@@ -84,12 +92,12 @@ pie.router = pie.model.extend('router', {
 
     var path, config, route, existing;
 
-    pie.object.forEach(routes, function(k,r) {
+    Obj.forEach(routes, function(k,r) {
 
-      if(pie.object.isObject(r)) {
+      if(Obj.isObject(r)) {
         path = k;
         config = r;
-        if(defaults) config = pie.object.merge({}, defaults, config);
+        if(defaults) config = Obj.merge({}, defaults, config);
       } else {
         path = r;
         config = {name: k};
@@ -98,7 +106,7 @@ pie.router = pie.model.extend('router', {
       existing = this.findDirectMatch(path) || (config.name || this.findRoute(config.name));
       this.removeChild(existing);
 
-      route = new pie.route(path, config);
+      route = new Route(path, config);
 
       this.addChild(route.name, route);
     }.bind(this));
@@ -124,16 +132,16 @@ pie.router = pie.model.extend('router', {
   // //=> "/foo/bar/44?q=search"
   // ```
   path: function(nameOrPath, data, interpolateOnly) {
-    var r = this.findRoute(nameOrPath) || new pie.route(nameOrPath),
+    var r = this.findRoute(nameOrPath) || new Route(nameOrPath),
     path;
 
-    data = pie.object.merge(r.interpolations(nameOrPath), data);
+    data = Obj.merge(r.interpolations(nameOrPath), data);
     path = r.path(data, interpolateOnly);
 
     // apply the root.
-    if(!pie.string.PROTOCOL_TEST.test(path) && !this.get('rootRegex').test(path)) {
+    if(!Str.PROTOCOL_TEST.test(path) && !this.get('rootRegex').test(path)) {
       path = this.get('root') + path;
-      path = pie.string.normalizeUrl(path);
+      path = Str.normalizeUrl(path);
     }
 
     return path;
@@ -176,28 +184,28 @@ pie.router = pie.model.extend('router', {
 
       path = pieces.shift();
       path = path.replace(this.get('rootRegex'), '');
-      path = pie.string.normalizeUrl(path);
+      path = Str.normalizeUrl(path);
 
       query = pieces.join('&') || '';
 
       match = this.findRoute(path);
 
-      query = pie.string.deserialize(query, parseQuery);
-      fullPath = pie.array.compact([path, pie.object.serialize(query)], true).join('?');
-      pathWithRoot = pie.string.normalizeUrl(this.get('root') + path);
+      query = Str.deserialize(query, parseQuery);
+      fullPath = Arr.compact([path, Obj.serialize(query)], true).join('?');
+      pathWithRoot = Str.normalizeUrl(this.get('root') + path);
       interpolations = match && match.interpolations(path, parseQuery);
 
-      result = pie.object.merge({
+      result = Obj.merge({
         path: path,
         fullPath: fullPath,
         pathWithRoot: pathWithRoot,
         interpolations: interpolations || {},
         query: query,
-        data: pie.object.merge({}, interpolations, query),
+        data: Obj.merge({}, interpolations, query),
         route: match
       }, match && match.options || this.missedConfig);
 
       return result;
     }.bind(this));
   }
-}, pie.mixins.container);
+}, Container);

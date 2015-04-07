@@ -1,7 +1,12 @@
+var Model = require('model');
+var Pie   = require('pie');
+var Arr   = require('extensions/array');
+var Obj   = require('extensions/object');
+
 // # Pie Error Handler
 // A class which knows how to handle errors in the app.
 // By default, it focuses mostly on xhr issues.
-pie.errorHandler = pie.model.extend('errorHandler', {
+module.exports = Model.extend('errorHandler', {
 
   init: function(app) {
     this._super({
@@ -35,17 +40,17 @@ pie.errorHandler = pie.model.extend('errorHandler', {
   // ```
   errorMessagesFromRequest: function(xhr) {
     var d = this.xhrData(xhr),
-    errors = pie.array.from(d.error || d.message || d.errors || []),
+    errors = Arr.from(d.error || d.message || d.errors || []),
     clean;
 
-    errors = errors.map(function(e){ return pie.object.isString(e) ? e : e.message; });
+    errors = errors.map(function(e){ return Obj.isString(e) ? e : e.message; });
 
-    errors = pie.array.compact(errors, true);
+    errors = Arr.compact(errors, true);
     clean   = this.app.i18n.t('app.errors.' + xhr.status, {default: errors});
 
-    this.app.debug.apply(this.app, pie._debugArgs(errors));
+    this.app.debug.apply(this.app, Pie._debugArgs(errors));
 
-    return pie.array.from(clean);
+    return Arr.from(clean);
   },
 
   getResponseCodeHandler: function(status) {
@@ -113,6 +118,6 @@ pie.errorHandler = pie.model.extend('errorHandler', {
   //
   // Hook in your own error reporting service. bugsnag, airbrake, etc.
   _reportError: function(err, options) {
-    this.app.debug.apply(this.app, pie._debugArgs(String(err) + " | " + JSON.stringify(options)));
+    this.app.debug.apply(this.app, Pie._debugArgs(String(err) + " | " + JSON.stringify(options)));
   }
 });

@@ -1,11 +1,13 @@
-pie.mixins.changeSet = {
+var Arr = require('../extensions/array');
+
+module.exports = {
 
   get: function(name) {
     return this.query({name: name});
   },
 
   has: function(name) {
-    return pie.array.areAny(this, function(change) {
+    return Arr.areAny(this, function(change) {
       return change.name === name;
     });
   },
@@ -33,10 +35,10 @@ pie.mixins.changeSet = {
   },
 
   _query: function(arrayFn, options) {
-    var names = pie.array.from(options.names || options.name),
-    types = pie.array.from(options.types || options.type);
+    var names = Arr.from(options.names || options.name),
+    types = Arr.from(options.types || options.type);
 
-    return pie.array[arrayFn](this, function(change) {
+    return Arr[arrayFn](this, function(change) {
       return (!names.length || ~names.indexOf(change.name)) &&
              (!types.length || ~types.indexOf(change.type));
     });

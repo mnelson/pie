@@ -1,8 +1,14 @@
+var Model = require('model');
+var Arr   = require('extensions/array');
+var Dom   = require('extensions/dom');
+var Obj   = require('extensions/object');
+var Str   = require('extensions/string');
+
 // # Pie Navigator
 // The navigator is in charge of observing browser navigation and updating it's data.
 // It's also the place to conduct push/replaceState history changes.
 // The navigator is simply a model, enabling observation, computed values, etc.
-pie.navigator = pie.model.extend('navigator', {
+module.exports = Model.extend('navigator', {
 
   init: function(app) {
     this.app = app;
@@ -23,7 +29,7 @@ pie.navigator = pie.model.extend('navigator', {
     path = split[0];
     query = split[1];
 
-    params = pie.object.deepMerge(query ? pie.string.deserialize(query) : {}, params);
+    params = Obj.deepMerge(query ? Str.deserialize(query) : {}, params);
 
     if(this.test('path', path) && this.test('query', params)) {
       return this;
@@ -31,8 +37,8 @@ pie.navigator = pie.model.extend('navigator', {
 
     url = path;
 
-    if(pie.object.hasAny(params)) {
-      url = pie.string.urlConcat(url, pie.object.serialize(params));
+    if(Obj.hasAny(params)) {
+      url = Str.urlConcat(url, Obj.serialize(params));
     }
 
     state = this.stateObject(path, params, replace);
@@ -46,13 +52,13 @@ pie.navigator = pie.model.extend('navigator', {
   // Set the data on this navigator object.
   setDataFromLocation: function() {
     var stringQuery = window.location.search.slice(1),
-    query = pie.string.deserialize(stringQuery);
+    query = Str.deserialize(stringQuery);
 
     this.sets({
       url: window.location.href,
       path: window.location.pathname,
       anchor: window.location.hash.slice(1),
-      fullPath: pie.array.compact([window.location.pathname, stringQuery], true).join('?'),
+      fullPath: Arr.compact([window.location.pathname, stringQuery], true).join('?'),
       query: query
     });
   },
@@ -64,16 +70,16 @@ pie.navigator = pie.model.extend('navigator', {
     /* we can only have one per browser. Multiple apps should observe pieHistoryChang on the body */
     if(!window.historyObserver) {
       window.historyObserver = function() {
-        pie.dom.trigger(document.body, 'pieHistoryChange');
+        Dom.trigger(document.body, 'pieHistoryChange');
       };
     }
     /* observe popstate and invoke our single history observer */
-    pie.dom.on(window, 'popstate', function() {
+    Dom.on(window, 'popstate', function() {
       window.historyObserver();
     });
 
     /* subscribe this navigator to the global history event */
-    pie.dom.on(document.body, 'pieHistoryChange.nav-' + this.pieId, this.setDataFromLocation.bind(this));
+    Dom.on(document.body, 'pieHistoryChange.nav-' + this.pieId, this.setDataFromLocation.bind(this));
 
     return this.setDataFromLocation();
   },
@@ -87,7 +93,7 @@ pie.navigator = pie.model.extend('navigator', {
     };
 
     if(replace) {
-      pie.object.deepMerge(state, window.history.state);
+      Obj.deepMerge(state, window.history.state);
     } else {
       state.navigator.referringPath = this.get('path');
       state.navigator.referringQuery = this.get('query');

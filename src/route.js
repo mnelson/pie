@@ -1,3 +1,8 @@
+var Model = require('model');
+var Arr   = require('extensions/array');
+var Obj   = require('extensions/object');
+var Str   = require('extensions/string');
+
 // # Pie Route
 //
 // Represents a route used by the router.
@@ -17,11 +22,11 @@
 // r.path({id: 'baz', page: 2})
 // //=> '/foo/baz?page=2'
 // ```
-pie.route = pie.model.extend('route', {
+module.exports = Model.extend('route', {
 
   init: function(path, options) {
     this._super({
-      pathTemplate: pie.string.normalizeUrl(path)
+      pathTemplate: Str.normalizeUrl(path)
     }, options);
 
     this.name = this.options.name || ("route-" + this.pieId);
@@ -79,7 +84,7 @@ pie.route = pie.model.extend('route', {
   //
   // Under the assumption that the path is already normalized and we've "matched" it,
   // extract the interpolations from `path`. If `parseValues` is true, the values will
-  // be parsed based on `pie.string.deserialize`'s implementation.
+  // be parsed based on `Str.deserialize`'s implementation.
   // ```
   // r = new pie.route('/foo/:id');
   // r.interolations('/foo/bar');
@@ -98,13 +103,13 @@ pie.route = pie.model.extend('route', {
         if(tmpl.charAt(0) === ':') {
           interpolations[tmpl.substr(1)] = splitPath;
         } else if(tmpl.charAt(0) === '*') {
-          interpolations[tmpl.substr(1)] = pie.array.get(splitPaths, i, -1).join('/');
+          interpolations[tmpl.substr(1)] = Arr.get(splitPaths, i, -1).join('/');
           break;
         }
       }
     }
 
-    if(parseValues) interpolations = pie.string.deserialize(pie.object.serialize(interpolations), true);
+    if(parseValues) interpolations = Str.deserialize(Obj.serialize(interpolations), true);
 
     return interpolations;
   },
@@ -152,13 +157,13 @@ pie.route = pie.model.extend('route', {
       return data[key];
     });
 
-    s = pie.string.normalizeUrl(s);
+    s = Str.normalizeUrl(s);
 
-    unusedData = pie.object.except(data, usedKeys);
-    params = pie.object.serialize(pie.object.compact(unusedData, true));
+    unusedData = Obj.except(data, usedKeys);
+    params = Obj.serialize(Obj.compact(unusedData, true));
 
     if(!interpolateOnly && params.length) {
-      s = pie.string.urlConcat(s, params);
+      s = Str.urlConcat(s, params);
     }
 
     return s;

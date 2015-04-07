@@ -1,3 +1,7 @@
+var Model = require('model');
+var Obj   = require('extensions/object');
+var Arr   = require('extensions/array');
+
 // # Pie Helpers
 // A registry for template helpers.
 // Any helper function register here will be available in the
@@ -14,7 +18,7 @@
 // <p>[%= h.reverse(data.jibberish) %]</p>
 // ```
 // Note: these do not become global functions but rather are local to each template.
-pie.helpers = pie.model.extend('helpers', {
+module.exports = Model.extend('helpers', {
 
   init: function(app, options) {
     this._super({
@@ -30,7 +34,7 @@ pie.helpers = pie.model.extend('helpers', {
     this.register('l', i18n.l.bind(i18n));
     this.register('timeago', i18n.timeago.bind(i18n));
     this.register('path', this.app.router.path.bind(this.app.router));
-    this.register('get', pie.object.getPath);
+    this.register('get', Obj.getPath);
   },
 
   /* Register a function to be available in templates. */
@@ -45,7 +49,7 @@ pie.helpers = pie.model.extend('helpers', {
 
   /* Call a helper function */
   call: function(/* name, ..args */) {
-    var args = pie.array.from(arguments),
+    var args = Arr.from(arguments),
     name = args.shift();
 
     return this.fetch(name).apply(null, args);

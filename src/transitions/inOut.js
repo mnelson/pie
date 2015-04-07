@@ -1,164 +1,17 @@
-// general framework for transitioning between views.
-pie.abstractViewTransition = pie.base.extend('abstractViewTransition', {
-
-  init: function(parent, options) {
-    options = options || {};
-
-    this.emitter    = new pie.emitter();
-    this.parent     = parent;
-    this.oldChild   = options.oldChild;
-    this.newChild   = options.newChild;
-    this.childName  = options.childName || this.oldChild && this.oldChild._nameWithinParent;
-    this.targetEl   = options.targetEl  || this.oldChild && this.oldChild.el.parentNode;
-
-    if(!this.childName) throw new Error("No child name provided for view transition");
-    if(!this.targetEl)  throw new Error("No target element provided for view transition");
-
-    this.options = options;
-
-    this.emitter.on('beforeTransition', this.manageChildren.bind(this));
-  },
-
-  // fire a sequence which looks like
-  // ```
-  // | beforeTransition
-  // | transition
-  // |--| beforeRemoveOldChild
-  // |  | removeOldChild
-  // |  | afterRemoveOldChild
-  // |  |--| beforeAddNewChild
-  // |     | addNewChild
-  // |     | afterAddNewChild
-  // | afterTransition
-  // ```
-  transition: function(cb) {
-    var em = this.emitter;
-
-    em.on('afterAddNewChild', function() {
-      em.fire('afterTransition');
-      if(cb) cb();
-    });
-
-    em.on('afterRemoveOldChild', function() {
-      em.fire('beforeAddNewChild');
-      em.fireAround('aroundAddNewChlid', function() {
-        em.fire('addNewChild');
-      });
-    });
-
-    em.on('transition', function() {
-      em.fire('beforeRemoveOldChild');
-      em.fireAround('aroundRemoveOldChild', function() {
-        em.fire('removeOldChild');
-      });
-    });
-
-    em.fire('beforeTransition');
-    em.fireAround('aroundTransition', function() {
-      em.fire('transition');
-    });
-  },
-
-  // to be called at the beginning of each transition.
-  // this removes the old child from it's parent and adds the new one
-  // it also begins the setup process for the new child.
-  manageChildren: function() {
-    if(this.oldChild) this.parent.removeChild(this.oldChild);
-    if(this.newChild) {
-      this.parent.addChild(this.childName, this.newChild);
-      if(!this.newChild.emitter.hasEvent('beforeSetup')) this.newChild.setup();
-    }
-  },
-
-});
-
-
-// Simple view transition: remove the old child from the view and dom, add the new child immediately after.
-// Uses the default sequence of events.
-pie.simpleViewTransition = pie.abstractViewTransition.extend('simpleViewTransition', {
-
-  init: function() {
-    this._super.apply(this, arguments);
-
-    this.emitter.on('removeOldChild', this.removeOldChild.bind(this));
-    this.emitter.on('addNewChild',    this.addNewChild.bind(this));
-  },
-
-  addNewChild: function() {
-    if(this.newChild) {
-      this.newChild.emitter.once('afterSetup', function(){
-        this.newChild.appendToDom(this.targetEl);
-        this.emitter.fire('afterAddNewChild');
-      }.bind(this), {immediate: true});
-    } else {
-      this.emitter.fire('afterAddNewChild');
-    }
-  },
-
-  removeOldChild: function() {
-    if(this.oldChild) {
-      this.oldChild.teardown();
-    }
-    this.emitter.fire('afterRemoveOldChild');
-  }
-
-});
-
-pie.loadingViewTransition = pie.simpleViewTransition.extend('loadingViewTransition', {
-
-  init: function() {
-    this._super.apply(this, arguments);
-
-    this.options.loadingClass = this.options.loadingClass || 'is-loading';
-  },
-
-  setLoading: function(bool) {
-    this.targetEl.classList[bool ? 'add' : 'remove'](this.options.loadingClass);
-  },
-
-  addNewChild: function() {
-    if(!this.newChild) {
-      this.emitter.fire('afterAddNewChild');
-      return;
-    }
-
-    this.begin = pie.date.now();
-
-    this.setLoading(true);
-
-    if(this.options.minDelay) {
-      setTimeout(this.attemptToAddChild.bind(this), this.options.minDelay);
-    }
-
-    this.newChild.emitter.once('afterSetup', function() {
-      this.attemptToAddChild(true);
-    }.bind(this), {immediate: true});
-  },
-
-  attemptToAddChild: function(partOfAfterSetup) {
-    var now = pie.date.now();
-    if(partOfAfterSetup || this.newChild.emitter.hasEvent('afterSetup')) {
-      if(!this.options.minDelay || now >= (this.begin + this.options.minDelay)) {
-        if(!this.newChild.emitter.hasEvent('removedFromParent')) {
-          this.setLoading(false);
-          this.newChild.appendToDom(this.targetEl);
-          this.emitter.fire('afterAddNewChild');
-        }
-      }
-    }
-  }
-});
-
+var Abstract = require('abstract');
+var Dom      = require('../extensions/dom');
+var Obj      = require('../extensions/object');
+var Str      = require('../extensions/string');
 // A transition which applies an "out" class to the old view, removes it after it transitions out, then adds
 // the new view to the dom and applies an "in" class.
 // Preparation of the new view is done as soon as the transition is started, enabling the shortest possible
 // amount of delay before the next view is added to the dom.
-pie.inOutViewTransition = pie.abstractViewTransition.extend('inOutViewTransition', {
+module.exports = Abstract.extend('inOutViewTransition', {
 
   init: function() {
     this._super.apply(this, arguments);
 
-    this.options = pie.object.merge({
+    this.options = Obj.merge({
       // the new view will gain this class
       inClass: 'view-in',
       // the old view will gain this class
@@ -366,14 +219,14 @@ pie.inOutViewTransition = pie.abstractViewTransition.extend('inOutViewTransition
     onTransitionEnd = function() {
       if(called) return;
       called = true;
-      if(trans) pie.dom.off(el, trans, onTransitionEnd);
+      if(trans) Dom.off(el, trans, onTransitionEnd);
       this.emitter.fire(fire);
     }.bind(this);
 
     this.emitter.once('cancel', onTransitionEnd);
 
     if(trans) {
-      pie.dom.on(el, trans, onTransitionEnd);
+      Dom.on(el, trans, onTransitionEnd);
     }
 
     this.applyClass(el, isIn);
@@ -389,16 +242,16 @@ pie.inOutViewTransition = pie.abstractViewTransition.extend('inOutViewTransition
 
   // which transition event should we use?
   transitionEndEvent: function(base){
-    var cap = pie.string.capitalize(base);
+    var cap = Str.capitalize(base);
 
     if(this._transitionEndEvent === undefined) {
-      if(pie.object.has(window, 'on' + base + 'end', true)) {
+      if(Obj.has(window, 'on' + base + 'end', true)) {
         this._transitionEndEvent = base + 'end';
-      } else if(pie.object.has(window, 'onwebkit' + base + 'end', true)) {
+      } else if(Obj.has(window, 'onwebkit' + base + 'end', true)) {
         this._transitionEndEvent = 'webkit' + cap + 'End';
-      } else if(pie.object.has(window, 'ms' + cap + 'End', true)) {
+      } else if(Obj.has(window, 'ms' + cap + 'End', true)) {
         this._transitionEndEvent = 'ms' + cap + 'End';
-      } else if(pie.object.has(document.body, 'ono' + base + 'end', true) || navigator.appName === 'Opera') {
+      } else if(Obj.has(document.body, 'ono' + base + 'end', true) || navigator.appName === 'Opera') {
         this._transitionEndEvent = 'o' + cap + 'End';
       } else {
         this._transitionEndEvent = false;
@@ -410,7 +263,7 @@ pie.inOutViewTransition = pie.abstractViewTransition.extend('inOutViewTransition
 
   // get a transition or animation property based on the browser's compatability.
   subProperty: function(endEvent, prop) {
-    return endEvent.replace(/end/i, pie.string.capitalize(prop));
+    return endEvent.replace(/end/i, Str.capitalize(prop));
   },
 
   transitionEvent: function(el) {

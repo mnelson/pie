@@ -1,3 +1,8 @@
+var Pie           = require('pie');
+var Base          = require('base');
+var RangeOptions  = require('rangeOptions');
+var Fn            = require('extensions/function');
+var Obj           = require('extensions/object');
 // # Pie Validator
 // A collection of validators commonly used in web forms.
 // ```
@@ -16,12 +21,12 @@
 // //=> "must be greater than or equal to 4"
 // ```
 // Default validation messages are configured in i18n.js.
-pie.validator = pie.base.extend('validator', {
+module.exports = Base.extend('validator', {
 
   init: function(app, options) {
-    this.app = app || pie.appInstance;
+    this.app = app || Pie.appInstance;
     this.i18n = app.i18n;
-    this.options = pie.object.deepMerge({
+    this.options = Obj.deepMerge({
       formats: {
         isoDate: /^\d{4}\-\d{2}\-\d{2}$/,
         isoTime: /^\d{4}\-\d{2}\-\d{2}T\d{2}-\d{2}-\d{3}/,
@@ -48,11 +53,11 @@ pie.validator = pie.base.extend('validator', {
 
     var key = validationOptions.messageKey || validationType,
         base = this.i18n.t('app.validations.' + key),
-        rangeOptions = new pie.validator.rangeOptions(this.app, validationOptions),
+        rangeOptions = new RangeOptions(this.app, validationOptions),
         range = rangeOptions.message();
 
     if(!range && key === 'length') {
-      rangeOptions = new pie.validator.rangeOptions(this.app, {gt: 0});
+      rangeOptions = new RangeOptions(this.app, {gt: 0});
       range = rangeOptions.message();
     }
 
@@ -216,7 +221,7 @@ pie.validator = pie.base.extend('validator', {
         options.sanitized = true;
       }
 
-      var ro = new pie.validator.rangeOptions(this.app, options);
+      var ro = new RangeOptions(this.app, options);
       return ro.matches(value);
 
     }.bind(this));
@@ -236,7 +241,7 @@ pie.validator = pie.base.extend('validator', {
   // //=> true
   // ```
   email: function(value, options) {
-    options = pie.object.merge({allowBlank: false}, options || {});
+    options = Obj.merge({allowBlank: false}, options || {});
     return this.withStandardChecks(value, options, function(){
       return (/^.+@.+\..+$/).test(value);
     });
@@ -309,7 +314,7 @@ pie.validator = pie.base.extend('validator', {
   inclusion: function(value, options) {
     options = options || {};
     return this.withStandardChecks(value, options, function() {
-      var inVal = pie.fn.valueFrom(options['in']);
+      var inVal = Fn.valueFrom(options['in']);
       if(Array.isArray(inVal)) return !inVal.length || !!~inVal.indexOf(value);
       return inVal == null || inVal === value;
     });
@@ -358,10 +363,10 @@ pie.validator = pie.base.extend('validator', {
   // //=> true
   // ```
   length: function(value, options){
-    options = pie.object.merge({allowBlank: false}, options);
+    options = Obj.merge({allowBlank: false}, options);
 
     /* preparation to use the number validator */
-    if(!pie.object.hasAny(options, 'gt', 'gte', 'lt', 'lte', 'eq')){
+    if(!Obj.hasAny(options, 'gt', 'gte', 'lt', 'lte', 'eq')){
       options.gt = 0;
     }
 
@@ -399,7 +404,7 @@ pie.validator = pie.base.extend('validator', {
       if(!/^([\-])?([\d]+)?\.?[\d]+$/.test(String(value))) return false;
 
       var number = parseFloat(value),
-      ro = new pie.validator.rangeOptions(this.app, options);
+      ro = new RangeOptions(this.app, options);
 
       return ro.matches(number);
     });
@@ -423,7 +428,7 @@ pie.validator = pie.base.extend('validator', {
   // //=> true
   // ```
   phone: function(value, options) {
-    options = pie.object.merge({allowBlank: false}, options || {});
+    options = Obj.merge({allowBlank: false}, options || {});
 
     return this.withStandardChecks(value, options, function(){
       var clean = String(value).replace(/[^\+\d]+/g, '');
@@ -450,7 +455,7 @@ pie.validator = pie.base.extend('validator', {
   // //=> true
   // ```
   presence: function(value, options){
-    return this.withStandardChecks(value, pie.object.merge({}, options, {allowBlank: false}), function(){
+    return this.withStandardChecks(value, Obj.merge({}, options, {allowBlank: false}), function(){
       return !!(value && (/[^ ]/).test(String(value)));
     });
   },
@@ -471,7 +476,7 @@ pie.validator = pie.base.extend('validator', {
     return this.withStandardChecks(value, options, function() {
 
       if(!options.within) return true;
-      var within = pie.fn.valueFrom(options.within), i = 0, cnt = 0;
+      var within = Fn.valueFrom(options.within), i = 0, cnt = 0;
       for(; i < within.length; i++) {
         if(within[i] === value) cnt++;
         if(cnt > 1) return false;
@@ -494,68 +499,8 @@ pie.validator = pie.base.extend('validator', {
   // //=> false
   // ```
   url: function(value, options) {
-    options = pie.object.merge({}, options, {format: /^https?\:\/\/.+\..+$/});
+    options = Obj.merge({}, options, {format: /^https?\:\/\/.+\..+$/});
     return this.format(value, options);
   }
 
-});
-
-
-
-// ## Pie Range Options
-//
-// A small utilitly class which matches range options to comparators.
-// ```
-// range = new pie.validator.rangeOptions(app, {gte: 3, lt: 8});
-// range.matches(3)
-// //=> true
-// range.matches(10)
-// //=> false
-// ```
-pie.validator.rangeOptions = pie.base.extend('rangeOptions', {
-
-  init: function(app, hash) {
-    this.i18n = app.i18n;
-    this.rangedata = hash || {};
-    /* for double casting situations */
-    if(pie.object.has(this.rangedata, 'rangedata')) this.rangedata = this.rangedata.rangedata;
-  },
-
-  get: function(key) {
-    return pie.fn.valueFrom(this.rangedata[key]);
-  },
-
-  has: function(key) {
-    return pie.object.has(this.rangedata, key);
-  },
-
-  t: function(key, options) {
-    return this.i18n.t('app.validations.range_messages.' + key, options);
-  },
-
-  matches: function(value) {
-    var valid = true;
-    valid = valid && (!this.has('gt') || value > this.get('gt'));
-    valid = valid && (!this.has('lt') || value < this.get('lt'));
-    valid = valid && (!this.has('gte') || value >= this.get('gte'));
-    valid = valid && (!this.has('lte') || value <= this.get('lte'));
-    valid = valid && (!this.has('eq') || value === this.get('eq'));
-    return valid;
-  },
-
-  message: function() {
-    if(this.has('eq')) {
-      return this.t('eq', {count: this.get('eq')});
-    } else {
-      var s = ['',''];
-
-      if(this.has('gt')) s[0] += this.t('gt', {count: this.get('gt')});
-      else if(this.has('gte')) s[0] += this.t('gte', {count: this.get('gte')});
-
-      if(this.has('lt')) s[1] += this.t('lt', {count: this.get('lt')});
-      else if(this.has('lte')) s[1] += this.t('lte', {count: this.get('lte')});
-
-      return pie.array.toSentence(pie.array.compact(s, true), this.i18n).trim();
-    }
-  }
 });

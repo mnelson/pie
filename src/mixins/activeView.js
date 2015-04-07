@@ -1,9 +1,11 @@
-pie.mixins.activeView = {
+var Obj = require('../extensions/object');
+
+module.exports = {
 
   setup: function() {
 
     if(this.options.autoRender && this.model) {
-      var field = pie.object.isString(this.options.autoRender) ? this.options.autoRender : '_version';
+      var field = Obj.isString(this.options.autoRender) ? this.options.autoRender : '_version';
       this.onChange(this.model, this.render.bind(this), field);
     }
 

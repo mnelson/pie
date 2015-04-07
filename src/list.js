@@ -1,3 +1,6 @@
+var Model = require('model');
+var Arr   = require('extensions/array');
+var Obj   = require('extensions/object');
 // # Pie List
 // A model representing a list. Essentially an array wrapper.
 // List models provide observation for:
@@ -8,7 +11,7 @@
 // Optionally, a list can provide a `cast` option which it will use
 // to cast plain object index values into. `castOptions` can also be supplied
 // which will be provided as the second argument to the cast' constructor.
-pie.list = pie.model.extend('list', {
+module.exports = Model.extend('list', {
 
   init: function(array, options) {
     array = array || [];
@@ -23,9 +26,9 @@ pie.list = pie.model.extend('list', {
   // second is the options-provided castOptions.
   _cast: function(value) {
     var klass = this.options.cast;
-    if(klass === true) klass = pie.model;
+    if(klass === true) klass = Model;
 
-    if(klass && pie.object.isPlainObject(value)) {
+    if(klass && Obj.isPlainObject(value)) {
       value = new klass(value, this.options.castOptions);
     }
 
@@ -54,7 +57,7 @@ pie.list = pie.model.extend('list', {
   _trackMutations: function(options, fn) {
 
     var oldLength = this.data.items.length,
-    changes = pie.array.from(fn.call()),
+    changes = Arr.from(fn.call()),
     newLength = this.data.items.length;
 
     if(!options || !options.skipTrackMutations) {
@@ -101,7 +104,7 @@ pie.list = pie.model.extend('list', {
     if(isNaN(idx)) path = key;
     else path = 'items.' + idx;
 
-    return pie.model.prototype.get.call(this, path);
+    return this._super(path);
   },
 
   // ** pie.list.indexOf **
@@ -246,7 +249,7 @@ pie.list = pie.model.extend('list', {
   },
 
   setItems: function(arr, options) {
-    var innerOptions = pie.object.merge({}, options, {
+    var innerOptions = Obj.merge({}, options, {
       skipTrackMutations: true,
       skipObservers: true
     });
