@@ -1,7 +1,7 @@
-var Model = require('model');
-var Pie   = require('pie');
-var Arr   = require('extensions/array');
-var Obj   = require('extensions/object');
+var Model = require('./model');
+var Pie   = require('./pie');
+var Arr   = require('./extensions/array');
+var Obj   = require('./extensions/object');
 
 // # Pie Error Handler
 // A class which knows how to handle errors in the app.

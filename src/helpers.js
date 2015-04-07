@@ -1,6 +1,6 @@
-var Model = require('model');
-var Obj   = require('extensions/object');
-var Arr   = require('extensions/array');
+var Model = require('./model');
+var Obj   = require('./extensions/object');
+var Arr   = require('./extensions/array');
 
 // # Pie Helpers
 // A registry for template helpers.

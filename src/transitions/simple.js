@@ -1,4 +1,4 @@
-var Abstract = require('abstract');
+var Abstract = require('./abstract');
 
 // Simple view transition: remove the old child from the view and dom, add the new child immediately after.
 // Uses the default sequence of events.

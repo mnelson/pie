@@ -1,4 +1,4 @@
-var Obj = require('extensions/object');
+var Obj = require('./extensions/object');
 
 // # Pie
 // The top level namespace of the framework.

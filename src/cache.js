@@ -1,7 +1,7 @@
-var Model     = require('model');
-var Fn        = require('extensions/function');
-var PieDate   = require('extensions/date');
-var Obj       = require('extensions/object');
+var Model     = require('./model');
+var Fn        = require('./extensions/function');
+var PieDate   = require('./extensions/date');
+var Obj       = require('./extensions/object');
 
 module.exports = Model.extend('cache', {
 

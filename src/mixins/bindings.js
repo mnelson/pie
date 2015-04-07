@@ -1,6 +1,6 @@
-var Arr = require('../extensions/array');
-var Fn  = require('../extensions/function');
-var Obj = require('../extensions/object');
+var Arr = require('./../extensions/array');
+var Fn  = require('./../extensions/function');
+var Obj = require('./../extensions/object');
 
 // # Bindings Mixin
 // A mixin to provide two way data binding between a model and dom elements.

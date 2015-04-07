@@ -1,6 +1,6 @@
-var Model = require('model');
-var Arr   = require('extensions/array');
-var Obj   = require('extensions/object');
+var Model = require('./model');
+var Arr   = require('./extensions/array');
+var Obj   = require('./extensions/object');
 // # Pie List
 // A model representing a list. Essentially an array wrapper.
 // List models provide observation for:

@@ -1,6 +1,6 @@
-var Arr = require('../extensions/array');
-var Fn  = require('../extensions/function');
-var Obj = require('../extensions/object');
+var Arr = require('./../extensions/array');
+var Fn  = require('./../extensions/function');
+var Obj = require('./../extensions/object');
 
 module.exports = {
 

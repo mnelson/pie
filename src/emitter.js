@@ -1,8 +1,8 @@
-var Model = require('model');
-var Arr   = require('extensions/array');
-var Str   = require('extensions/string');
-var Fn    = require('extensions/function');
-var Obj   = require('extensions/object');
+var Model = require('./model');
+var Arr   = require('./extensions/array');
+var Str   = require('./extensions/string');
+var Fn    = require('./extensions/function');
+var Obj   = require('./extensions/object');
 
 // # Pie Emitter
 //

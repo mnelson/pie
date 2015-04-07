@@ -1,9 +1,9 @@
-var Pie       = require('../pie');
-var Arr       = require('array');
-var Fn        = require('function');
-var Obj       = require('object');
-var Str       = require('string');
-var Cache     = require('../cache');
+var Pie       = require('./../pie');
+var Arr       = require('./array');
+var Fn        = require('./function');
+var Obj       = require('./object');
+var Str       = require('./string');
+var Cache     = require('./../cache');
 
 // # Pie DOM Utilities
 // A series of helpful methods for working with DOM elements.

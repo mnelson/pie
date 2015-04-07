@@ -1,7 +1,7 @@
-var Pie   = require('pie');
-var Model = require('model');
-var Obj   = require('extensions/object');
-var Str   = require('extensions/string');
+var Pie   = require('./pie');
+var Model = require('./model');
+var Obj   = require('./extensions/object');
+var Str   = require('./extensions/string');
 
 // # Pie Templates
 // A container for a collection of templates. It knows how to read, compile, and invoke template functions.

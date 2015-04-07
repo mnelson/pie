@@ -1,10 +1,10 @@
-var Pie       = require('pie');
-var Base      = require('base');
-var Emitter   = require('emitter');
-var Arr       = require('extensions/array');
-var Dom       = require('extensions/dom');
-var Obj       = require('extensions/object');
-var Container = require('mixins/container');
+var Pie       = require('./pie');
+var Base      = require('./base');
+var Emitter   = require('./emitter');
+var Arr       = require('./extensions/array');
+var Dom       = require('./extensions/dom');
+var Obj       = require('./extensions/object');
+var Container = require('./mixins/container');
 
 // # Pie View
 //

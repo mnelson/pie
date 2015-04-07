@@ -1,11 +1,11 @@
-var Emitter = require('emitter');
-var Pie     = require('pie');
-var Model   = require('model');
-var Obj     = require('extensions/object');
-var Arr     = require('extensions/array');
-var Str     = require('extensions/string');
-var Fn      = require('extensions/function');
-var Valid   = require('mixins/validatable');
+var Emitter = require('./emitter');
+var Pie     = require('./pie');
+var Model   = require('./model');
+var Obj     = require('./extensions/object');
+var Arr     = require('./extensions/array');
+var Str     = require('./extensions/string');
+var Fn      = require('./extensions/function');
+var Valid   = require('./mixins/validatable');
 
 module.exports = Model.extend('ajaxRequest', {
 

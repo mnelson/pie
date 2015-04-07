@@ -1,5 +1,5 @@
-var Simple = require('simple');
-var PieDate = require('../extensions/date');
+var Simple = require('./simple');
+var PieDate = require('./../extensions/date');
 
 module.exports = Simple.extend('loadingViewTransition', {
 

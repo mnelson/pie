@@ -1,7 +1,7 @@
-var Model = require('../model');
-var Validatable = require('validatable');
-var Arr = require('../extensions/array');
-var Obj = require('../extensions/object');
+var Model = require('./../model');
+var Validatable = require('./validatable');
+var Arr = require('./../extensions/array');
+var Obj = require('./../extensions/object');
 
 // # Pie FormView
 // A view designed to ease form modeling & interactions.

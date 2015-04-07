@@ -1,8 +1,8 @@
-var Model = require('model');
-var Arr   = require('extensions/array');
-var Dom   = require('extensions/dom');
-var Obj   = require('extensions/object');
-var Str   = require('extensions/string');
+var Model = require('./model');
+var Arr   = require('./extensions/array');
+var Dom   = require('./extensions/dom');
+var Obj   = require('./extensions/object');
+var Str   = require('./extensions/string');
 
 // # Pie Navigator
 // The navigator is in charge of observing browser navigation and updating it's data.

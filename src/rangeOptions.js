@@ -1,6 +1,6 @@
-var Base = require('base');
-var Arr  = require('extensions/array');
-var Obj  = require('extensions/object');
+var Base = require('./base');
+var Arr  = require('./extensions/array');
+var Obj  = require('./extensions/object');
 // ## Pie Range Options
 //
 // A small utilitly class which matches range options to comparators.

@@ -1,6 +1,6 @@
-var Pie = require('pie');
-var Arr = require('extensions/array');
-var Obj = require('extensions/object');
+var Pie = require('./pie');
+var Arr = require('./extensions/array');
+var Obj = require('./extensions/object');
 
 var Base = function() {
   Pie.setUid(this);

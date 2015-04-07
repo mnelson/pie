@@ -1,6 +1,6 @@
-var Obj     = require('extensions/object');
-var Base    = require('base');
-var Request = require('ajaxRequest');
+var Obj     = require('./extensions/object');
+var Base    = require('./base');
+var Request = require('./ajaxRequest');
 
 module.exports = Base.extend('ajax', {
 

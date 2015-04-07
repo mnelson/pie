@@ -1,10 +1,10 @@
-var Model     = require('model');
-var Cache     = require('cache');
-var Route     = require('route');
-var Arr       = require('extensions/array');
-var Obj       = require('extensions/object');
-var Str       = require('extensions/string');
-var Container = require('mixins/container');
+var Model     = require('./model');
+var Cache     = require('./cache');
+var Route     = require('./route');
+var Arr       = require('./extensions/array');
+var Obj       = require('./extensions/object');
+var Str       = require('./extensions/string');
+var Container = require('./mixins/container');
 
 // # Pie Router
 //

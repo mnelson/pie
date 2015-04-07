@@ -1,6 +1,6 @@
-var Obj     = require('object');
-var PieDate = require('date');
-var PieMath = require('math');
+var Obj     = require('./object');
+var PieDate = require('./date');
+var PieMath = require('./math');
 
 var Fn = {
   // **pie.fn.async**

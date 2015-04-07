@@ -1,5 +1,5 @@
-var Base = require('../base');
-var Emitter = require('../emitter');
+var Base = require('./../base');
+var Emitter = require('./../emitter');
 
 // general framework for transitioning between views.
 module.exports = Base.extend('abstractViewTransition', {

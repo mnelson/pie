@@ -1,4 +1,4 @@
-var Obj = require('object');
+var Obj = require('./object');
 
 var Browser = {
   /* From old jQuery */

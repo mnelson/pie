@@ -1,4 +1,4 @@
-var Obj = require('../extensions/object');
+var Obj = require('./../extensions/object');
 
 module.exports = {
 

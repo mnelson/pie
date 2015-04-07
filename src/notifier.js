@@ -1,8 +1,8 @@
-var Pie  = require('pie');
-var Base = require('base');
-var List = require('list');
-var Arr  = require('extensions/array');
-var Obj  = require('extensions/object');
+var Pie  = require('./pie');
+var Base = require('./base');
+var List = require('./list');
+var Arr  = require('./extensions/array');
+var Obj  = require('./extensions/object');
 
 // # Pie Notifier
 // A class which provides an interface for rendering page-level notifications.

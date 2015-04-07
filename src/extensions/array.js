@@ -1,4 +1,4 @@
-var Obj = require('object');
+var Obj = require('./object');
 
 // # Pie Array Utilities
 // A series of helpful methods for working with arrays.

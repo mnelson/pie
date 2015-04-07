@@ -1,5 +1,5 @@
-var Arr       = require('array');
-var Obj       = require('object');
+var Arr       = require('./array');
+var Obj       = require('./object');
 
 var Str = {
   PROTOCOL_TEST: /\w+:\/\//,

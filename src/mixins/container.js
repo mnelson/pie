@@ -1,5 +1,5 @@
-var Arr = require('../extensions/array');
-var Obj = require('../extensions/object');
+var Arr = require('./../extensions/array');
+var Obj = require('./../extensions/object');
 
 module.exports = {
 

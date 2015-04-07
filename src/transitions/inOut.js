@@ -1,7 +1,7 @@
-var Abstract = require('abstract');
-var Dom      = require('../extensions/dom');
-var Obj      = require('../extensions/object');
-var Str      = require('../extensions/string');
+var Abstract = require('./abstract');
+var Dom      = require('./../extensions/dom');
+var Obj      = require('./../extensions/object');
+var Str      = require('./../extensions/string');
 // A transition which applies an "out" class to the old view, removes it after it transitions out, then adds
 // the new view to the dom and applies an "in" class.
 // Preparation of the new view is done as soon as the transition is started, enabling the shortest possible

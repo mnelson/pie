@@ -10,7 +10,7 @@
   "name": "pie",
   "description": "Pie is a set of resources I use to develop fast, independent web applications. It's not a framework because frameworks aren't cool anymore, but pie is cool.",
   "version": "0.0.1",
-  "main": "src/pie.js",
+  "main": "index.js",
   "directories": {
     "doc": "docs",
     "example": "examples"

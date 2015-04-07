@@ -1,9 +1,9 @@
-var Pie       = require('pie');
-var Base      = require('base');
-var Arr       = require('extensions/array');
-var Obj       = require('extensions/object');
-var Str       = require('extensions/string');
-var ChangeSet = require('mixins/changeSet');
+var Pie       = require('./pie');
+var Base      = require('./base');
+var Arr       = require('./extensions/array');
+var Obj       = require('./extensions/object');
+var Str       = require('./extensions/string');
+var ChangeSet = require('./mixins/changeSet');
 // # Pie Model
 // ### Setters and Getters
 // pie.model provides a basic interface for object management and observation.

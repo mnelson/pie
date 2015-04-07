@@ -1,4 +1,4 @@
-var Arr = require('../extensions/array');
+var Arr = require('./../extensions/array');
 
 module.exports = {
 

@@ -1,5 +1,5 @@
-var Model = require('model');
-var Obj   = require('extensions/object');
+var Model = require('./model');
+var Obj   = require('./extensions/object');
 
 // # Pie Config
 // A place to store app configuration information.

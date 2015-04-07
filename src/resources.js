@@ -1,8 +1,8 @@
-var Pie   = require('pie');
-var Model = require('model');
-var Arr   = require('extensions/array');
-var Fn    = require('extensions/function');
-var Obj   = require('extensions/object');
+var Pie   = require('./pie');
+var Model = require('./model');
+var Arr   = require('./extensions/array');
+var Fn    = require('./extensions/function');
+var Obj   = require('./extensions/object');
 
 // # Pie Resources
 //

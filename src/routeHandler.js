@@ -1,7 +1,7 @@
-var Pie  = require('pie');
-var Base = require('base');
-var SimpleViewTransition = require('transitions/simple');
-var Obj = require('extensions/object');
+var Pie  = require('./pie');
+var Base = require('./base');
+var SimpleViewTransition = require('./transitions/simple');
+var Obj = require('./extensions/object');
 
 module.exports = Base.extend('routeHandler', {
 

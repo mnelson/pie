@@ -1,6 +1,6 @@
-var Arr = require('array');
-var Fn  = require('function');
-var Str = require('string');
+var Arr = require('./array');
+var Fn  = require('./function');
+var Str = require('./string');
 
 var Obj = {
   // deletes all undefined and null values.

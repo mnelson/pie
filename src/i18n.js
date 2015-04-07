@@ -1,9 +1,9 @@
-var Model   = require('model');
-var Arr     = require('extensions/array');
-var Fn      = require('extensions/function');
-var Obj     = require('extensions/object');
-var PieDate = require('extensions/date');
-var Str     = require('extensions/string');
+var Model   = require('./model');
+var Arr     = require('./extensions/array');
+var Fn      = require('./extensions/function');
+var Obj     = require('./extensions/object');
+var PieDate = require('./extensions/date');
+var Str     = require('./extensions/string');
 
 // # Pie i18n
 // The i18n class is in charge of the defining and lookup of translations, the

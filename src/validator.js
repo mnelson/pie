@@ -1,8 +1,8 @@
-var Pie           = require('pie');
-var Base          = require('base');
-var RangeOptions  = require('rangeOptions');
-var Fn            = require('extensions/function');
-var Obj           = require('extensions/object');
+var Pie           = require('./pie');
+var Base          = require('./base');
+var RangeOptions  = require('./rangeOptions');
+var Fn            = require('./extensions/function');
+var Obj           = require('./extensions/object');
 // # Pie Validator
 // A collection of validators commonly used in web forms.
 // ```
