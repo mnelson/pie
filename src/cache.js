@@ -1,4 +1,9 @@
-pie.cache = pie.model.extend('cache', {
+var Model     = require('./model');
+var Fn        = require('./extensions/function');
+var PieDate   = require('./extensions/date');
+var Obj       = require('./extensions/object');
+
+module.exports = Model.extend('cache', {
 
   init: function(data, options) {
     this._super(data, options);
@@ -22,7 +27,7 @@ pie.cache = pie.model.extend('cache', {
   },
 
   get: function(path) {
-    var wrap = pie.model.prototype.get.call(this, path);
+    var wrap = this._super(path);
     if(!wrap) return undefined;
     if(wrap.expiresAt && wrap.expiresAt <= this.currentTime()) {
       this.set(path, undefined);
@@ -35,17 +40,17 @@ pie.cache = pie.model.extend('cache', {
   getOrSet: function(path, value, options) {
     var result = this.get(path);
     if(result !== undefined) return result;
-    value = pie.fn.valueFrom(value);
+    value = Fn.valueFrom(value);
     this.set(path, value, options);
     return value;
   },
 
   set: function(path, value, options) {
     if(value === undefined) {
-      pie.model.prototype.set.call(this, path, undefined, options);
+      this._super(path, undefined, options);
     } else {
       var wrap = this.wrap(value, options);
-      pie.model.prototype.set.call(this, path, wrap, options);
+      this._super(path, wrap, options);
     }
   },
 
@@ -58,11 +63,11 @@ pie.cache = pie.model.extend('cache', {
       // make sure we don't have a date.
       if(expiresAt instanceof Date) expiresAt = expiresAt.getTime();
       // or a string
-      if(pie.object.isString(expiresAt)) {
+      if(Obj.isString(expiresAt)) {
         // check for a numeric
         if(/^\d+$/.test(expiresAt)) expiresAt = parseInt(expiresAt, 10);
         // otherwise assume ISO
-        else expiresAt = pie.date.timeFromISO(expiresAt).getTime();
+        else expiresAt = PieDate.timeFromISO(expiresAt).getTime();
       }
 
       // we're dealing with something smaller than a current milli epoch, assume we're dealing with a ttl.
@@ -76,6 +81,6 @@ pie.cache = pie.model.extend('cache', {
   },
 
   currentTime: function() {
-    return pie.date.now();
+    return PieDate.now();
   }
 });

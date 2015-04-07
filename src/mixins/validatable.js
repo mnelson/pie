@@ -1,4 +1,8 @@
-pie.mixins.validatable = {
+var Arr = require('./../extensions/array');
+var Fn  = require('./../extensions/function');
+var Obj = require('./../extensions/object');
+
+module.exports = {
 
   init: function() {
     this.validations = [];
@@ -35,23 +39,23 @@ pie.mixins.validatable = {
 
     Object.keys(obj).forEach(function(k) {
       // always convert to an array
-      configs = pie.array.from(obj[k]);
+      configs = Arr.from(obj[k]);
       resultConfigs = [];
 
       configs.forEach(function(conf) {
 
         // if it's a string or a function, throw it in directly, with no options
-        if(pie.object.isString(conf)) {
+        if(Obj.isString(conf)) {
           resultConfigs.push({type: conf, options: {}});
         // if it's a function, make it a type function, then provide the function as an option
-        } else if(pie.object.isFunction(conf)){
+        } else if(Obj.isFunction(conf)){
           resultConfigs.push({type: 'fn', options: {fn: conf}});
         // otherwise, we have an object
         } else {
 
           // iterate the keys, adding a validation for each
           Object.keys(conf).forEach(function(confKey){
-            if (pie.object.isObject(conf[confKey])) {
+            if (Obj.isObject(conf[confKey])) {
               resultConfigs.push({type: confKey, options: conf[confKey]});
 
             // in this case, we convert the value to an option
@@ -60,7 +64,7 @@ pie.mixins.validatable = {
             } else {
               resultConfigs.push({
                 type: confKey,
-                options: pie.object.merge({}, conf)
+                options: Obj.merge({}, conf)
               });
             }
           });
@@ -109,7 +113,7 @@ pie.mixins.validatable = {
       }.bind(this));
 
       // start all the validations
-      pie.fn.async(fns, whenComplete, counterObserver);
+      Fn.async(fns, whenComplete, counterObserver);
 
       return void(0); // return undefined to ensure we make our point about asynchronous validation.
     }
@@ -130,7 +134,7 @@ pie.mixins.validatable = {
   // validate a specific key and optionally invoke a callback.
   validate: function(k, cb) {
     var validators = this.app.validator,
-    validations = pie.array.from(this.validations[k]),
+    validations = Arr.from(this.validations[k]),
     value = this.get(k),
     valid = true,
     fns,
@@ -174,7 +178,7 @@ pie.mixins.validatable = {
         };
       });
 
-      pie.fn.async(fns, whenComplete, counterObserver);
+      Fn.async(fns, whenComplete, counterObserver);
 
       return void(0);
     }

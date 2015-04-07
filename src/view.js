@@ -1,3 +1,11 @@
+var Pie       = require('./pie');
+var Base      = require('./base');
+var Emitter   = require('./emitter');
+var Arr       = require('./extensions/array');
+var Dom       = require('./extensions/dom');
+var Obj       = require('./extensions/object');
+var Container = require('./mixins/container');
+
 // # Pie View
 //
 // Views are objects which wrap and interact with DOM. They hold reference to a single element via `this.el`. All
@@ -11,15 +19,15 @@
 //   * user interaction
 //   * teardown - removes any added events from the dom elements, removes any model observations, removes the el from the dom, etc.
 //   * detach - when the view's el is removed from the DOM.
-pie.view = pie.base.extend('view');
+var View = Base.extend('view');
 
 /* true constructor overriden to invoke setup after init() is finished if `setup:true` was provided as an option */
-pie.view.prototype.constructor = function view() {
-  pie.base.prototype.constructor.apply(this, arguments);
+View.prototype.constructor = function view() {
+  Base.prototype.constructor.apply(this, arguments);
   if(this.options.setup) this.setup();
 };
 
-pie.view.reopen({
+View.reopen({
 
   // **pie.view.init
   // Options:
@@ -29,12 +37,12 @@ pie.view.reopen({
   //   * setup - (option) if truthy, this view's setup function will be called directly after initialization.
   init: function(options) {
     this.options = options || {},
-    this.app = this.options.app || pie.appInstance;
-    this.el = this.options.el || pie.dom.createElement('<div></div>');
+    this.app = this.options.app || Pie.appInstance;
+    this.el = this.options.el || Dom.createElement('<div></div>');
     this.eventedEls = [];
     this.changeCallbacks = [];
 
-    this.emitter = new pie.emitter();
+    this.emitter = new Emitter();
 
     if(this.options.uiTarget) {
       this.emitter.once('afterSetup', this.appendToDom.bind(this));
@@ -95,7 +103,7 @@ pie.view.reopen({
   navigationUpdated: function(changeSet) {
     this.emitter.fire('navigationUpdated', changeSet);
     this.children.forEach(function(c){
-      if(pie.object.has(c, 'navigationUpdated', true)) c.navigationUpdated(changeSet);
+      if(Obj.has(c, 'navigationUpdated', true)) c.navigationUpdated(changeSet);
     });
   },
 
@@ -112,13 +120,13 @@ pie.view.reopen({
   // view.on('resize', null, 'onResize', window);
   // ```
   on: function(/* e, sel, f1, f2, f3, el */) {
-    var fns = pie.array.from(arguments),
+    var fns = Arr.from(arguments),
         events = fns.shift(),
         sel = fns.shift(),
         ns = this.eventNamespace(),
         f2, el;
 
-    if(!pie.object.isFunction(pie.array.get(fns, -1))) el = fns.pop();
+    if(!Obj.isFunction(Arr.get(fns, -1))) el = fns.pop();
     el = el || this.el;
 
     if(!~this.eventedEls.indexOf(el)) this.eventedEls.push(el);
@@ -126,7 +134,7 @@ pie.view.reopen({
     events = events.split(' ');
 
     fns.forEach(function(fn) {
-      fn = pie.object.isString(fn) ? this[fn].bind(this) : fn;
+      fn = Obj.isString(fn) ? this[fn].bind(this) : fn;
 
       f2 = function(e){
         if(e.namespace === ns) {
@@ -136,7 +144,7 @@ pie.view.reopen({
 
       events.forEach(function(ev) {
         ev += "." + ns;
-        pie.dom.on(el, ev, f2, sel);
+        Dom.on(el, ev, f2, sel);
       }.bind(this));
 
     }.bind(this));
@@ -156,12 +164,12 @@ pie.view.reopen({
   // ```
   onChange: function() {
 
-    var parts = pie.array.partitionAt(arguments, pie.object.isFunction),
+    var parts = Arr.partitionAt(arguments, Obj.isFunction),
     observables = parts[0],
     args = parts[1];
 
     observables.forEach(function(observable){
-      if(!pie.object.has(observable, 'observe', true)) throw new Error("Observable does not respond to observe");
+      if(!Obj.has(observable, 'observe', true)) throw new Error("Observable does not respond to observe");
 
       this.changeCallbacks.push({
         observable: observable,
@@ -193,7 +201,7 @@ pie.view.reopen({
   // **pie.view.removeFromDom**
   //
   // Assuming the view's el is in the DOM, a detach sequence will be invoked, resulting in the el being removed.
-  // Note we don't use pie.dom.remove since we know we're cleaning up our events. Multiple views could be associated
+  // Note we don't use Dom.remove since we know we're cleaning up our events. Multiple views could be associated
   // with the same el.
   removeFromDom: function() {
     if(this.el.parentNode) {
@@ -250,7 +258,7 @@ pie.view.reopen({
   // Invokes teardown on each child that responds to it.
   teardownChildren: function() {
     this.children.forEach(function(child) {
-      if(pie.object.has(child, 'teardown', true)) child.teardown();
+      if(Obj.has(child, 'teardown', true)) child.teardown();
     });
   },
 
@@ -258,7 +266,7 @@ pie.view.reopen({
   _unobserveEvents: function() {
     var key = '*.' + this.eventNamespace();
     this.eventedEls.forEach(function(el) {
-      pie.dom.off(el, key);
+      Dom.off(el, key);
     });
   },
 
@@ -272,4 +280,4 @@ pie.view.reopen({
     }
   }
 
-}, pie.mixins.container);
+}, Container);

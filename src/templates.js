@@ -1,3 +1,8 @@
+var Pie   = require('./pie');
+var Model = require('./model');
+var Obj   = require('./extensions/object');
+var Str   = require('./extensions/string');
+
 // # Pie Templates
 // A container for a collection of templates. It knows how to read, compile, and invoke template functions.
 // ```
@@ -11,17 +16,17 @@
 // If a template by that name is requested and has not yet been compiled, the tag's content will be parsed and a template function will be generated.
 // 2. **script tag data-src** - The same process as `1.` is followed but if a `data-src` attribute is present a `text/html` ajax request will take place to fetch the template content.
 // After fetch, the content will be parsed and a template will be generated. This method is inherently async and is only checked if `templates#renderAsync` is used.
-pie.templates = pie.model.extend('templates', {
+module.exports = Model.extend('templates', {
 
   init: function(app, options) {
-    this._super({}, pie.object.merge({
+    this._super({}, Obj.merge({
       app: app,
       templateSelector: 'script[type="text/pie-template"]'
     }, options));
   },
 
   _node: function(name) {
-    return pie.qs(this.options.templateSelector + '[id="' + name + '"]');
+    return Pie.qs(this.options.templateSelector + '[id="' + name + '"]');
   },
 
   // **pie.templates.registerTemplate**
@@ -35,12 +40,12 @@ pie.templates = pie.model.extend('templates', {
   // <h1>[%= h.t("account.hello") %], [%= h.get(data, "firstName") %]</h1>
   // ```
   registerTemplate: function(name, content) {
-    var args = pie._debugArgs('Compiling template: %c' + name);
+    var args = Pie._debugArgs('Compiling template: %c' + name);
     args.push("color: #aaa;");
 
     this.app.debug.apply(this.app, args);
 
-    this.set(name, pie.string.template(content, this.app.helpers.provideVariables()));
+    this.set(name, Str.template(content, this.app.helpers.provideVariables()));
   },
 
   // **pie.templates.load**
@@ -52,7 +57,7 @@ pie.templates = pie.model.extend('templates', {
   // });
   // ```
   load: function(name, ajaxOptions, cb) {
-    ajaxOptions = pie.object.merge({
+    ajaxOptions = Obj.merge({
       verb: 'get',
       accept: 'text/html'
     }, ajaxOptions);

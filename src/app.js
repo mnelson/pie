@@ -1,24 +1,46 @@
+var Ajax          = require('./ajax');
+var Arr           = require('./extensions/array');
+var Base          = require('./base');
+var Cache         = require('./cache');
+var Config        = require('./config');
+var Container     = require('./mixins/container');
+var Dom           = require('./extensions/dom');
+var Emitter       = require('./emitter');
+var ErrorHandler  = require('./errorHandler');
+var Helpers       = require('./helpers');
+var I18n          = require('./i18n');
+var Model         = require('./model');
+var Navigator     = require('./navigator');
+var Notifier      = require('./notifier');
+var Obj           = require('./extensions/object');
+var Pie           = require('./pie');
+var Resources     = require('./resources');
+var RouteHandler  = require('./routeHandler');
+var Router        = require('./router');
+var Templates     = require('./templates');
+var Validator     = require('./validator');
+
 // # Pie App
 //
 // The app class is the entry point of your application. It acts as the container in charge of managing the page's context.
 // It provides access to application utilities, routing, templates, i18n, etc.
 // It observes browser and link navigation and changes the page's context automatically.
-pie.app = pie.base.extend('app', {
+module.exports = Base.extend('app', {
   init: function(options) {
 
 
-    /* `pie.base.prototype.constructor` handles the setting of an app, */
+    /* `Base.prototype.constructor` handles the setting of an app, */
     /* but we don't want a reference to another app within this app. */
     delete this.app;
 
     /* Set a global instance which can be used as a backup within the pie library. */
-    pie.appInstance = pie.appInstance || this;
+    Pie.appInstance = Pie.appInstance || this;
 
     /* Register with pie to allow for nifty global lookups. */
-    pie.apps[this.pieId] = this;
+    Pie.apps[this.pieId] = this;
 
     /* Default application options. */
-    this.options = pie.object.deepMerge({
+    this.options = Obj.deepMerge({
       uiTarget: 'body',
       unsupportedPath: '/browser/unsupported',
       notificationStorageKey: 'js-alerts',
@@ -51,7 +73,7 @@ pie.app = pie.base.extend('app', {
       var k = this.options[key] || _default,
       opt = this.options[key + 'Options'] || {};
 
-      if(pie.object.isFunction(k)) {
+      if(Obj.isFunction(k)) {
         return new k(this, opt);
       } else {
         k.app = this;
@@ -61,53 +83,53 @@ pie.app = pie.base.extend('app', {
 
 
     // `app.config` is a model used to manage configuration objects.
-    this.config = classOption('config', pie.config);
+    this.config = classOption('config', Config);
 
     // `app.cache` is a centralized cache store to be used by anyone.
-    this.cache = classOption('cache', pie.cache);
+    this.cache = classOption('cache', Cache);
 
     // `app.emitter` is an interface for subscribing and observing app events
-    this.emitter = classOption('emitter', pie.emitter);
+    this.emitter = classOption('emitter', Emitter);
 
     // `app.i18n` is the translation functionality
-    this.i18n = classOption('i18n', pie.i18n);
+    this.i18n = classOption('i18n', I18n);
 
     // `app.ajax` is ajax interface + app specific functionality.
-    this.ajax = classOption('ajax', pie.ajax);
+    this.ajax = classOption('ajax', Ajax);
 
     // `app.notifier` is the object responsible for showing page-level notifications, alerts, etc.
-    this.notifier = classOption('notifier', pie.notifier);
+    this.notifier = classOption('notifier', Notifier);
 
     // `app.errorHandler` is the object responsible for
-    this.errorHandler = classOption('errorHandler', pie.errorHandler);
+    this.errorHandler = classOption('errorHandler', ErrorHandler);
 
     // After a navigation change, app.parsedUrl is the new parsed route
-    this.parsedUrl = new pie.model({});
+    this.parsedUrl = new Model({});
 
     // `app.router` is used to determine which view should be rendered based on the url
-    this.router = classOption('router', pie.router);
+    this.router = classOption('router', Router);
 
     // `app.routeHandler` extracts information from the current route and determines what to do with it.
-    this.routeHandler = classOption('routeHandler', pie.routeHandler);
+    this.routeHandler = classOption('routeHandler', RouteHandler);
 
     // `app.resources` is used for managing the loading of external resources.
-    this.resources = classOption('resources', pie.resources);
+    this.resources = classOption('resources', Resources);
 
     // Template helper methods are evaluated to the local variable `h` in templates.
     // Any methods registered with this helpers module will be available in templates
     // rendered by this app's `templates` object.
-    this.helpers = classOption('helpers', pie.helpers);
+    this.helpers = classOption('helpers', Helpers);
 
     // `app.templates` is used to manage and render application templates.
-    this.templates = classOption('templates', pie.templates);
+    this.templates = classOption('templates', Templates);
 
     // `app.navigator` is the only navigator which should exist and be used within this app.
     // Multiple apps and navigators can exist but one must take the lead for actually changing
-    // browser state. See more in the pie.navigator class.
-    this.navigator = classOption('navigator', pie.navigator);
+    // browser state. See more in the navigator class.
+    this.navigator = classOption('navigator', Navigator);
 
     // `app.validator` a validator intance to be used in conjunction with this app's model activity.
-    this.validator = classOption('validator', pie.validator);
+    this.validator = classOption('validator', Validator);
 
     // We observe the navigator and tell the router to parse the new url
     this.navigator.observe(this.parseUrl.bind(this));
@@ -152,26 +174,26 @@ pie.app = pie.base.extend('app', {
   // app.go('/test-url', true, 'Thanks for your interest') // replaces state with /test-url and shows the provided notification
   // app.go('/test-url', 'Thanks for your interest') // navigates to /test-url and shows the provided notification
   go: function(){
-    var args = pie.array.from(arguments), path, notificationArgs, replaceState;
+    var args = Arr.from(arguments), path, notificationArgs, replaceState;
 
     /* Path is always first. */
     path = args.shift();
 
 
     /* Next we check for a query object */
-    if(pie.object.isPlainObject(args[0])) {
+    if(Obj.isPlainObject(args[0])) {
       path = this.router.path(path, args.shift());
 
     /* If there is no query object we treat the first arg as an array and apply to router.path */
     /* This enables the user to pass anything to the router.path function by providing an array as the first arg */
     } else {
-      path = this.router.path.apply(this.router, pie.array.from(path));
+      path = this.router.path.apply(this.router, Arr.from(path));
     }
 
     if(path === this.parsedUrl.get('fullPath')) return;
 
     /* If the next argument is a boolean, we care about replaceState */
-    if(pie.object.isBoolean(args[0])) {
+    if(Obj.isBoolean(args[0])) {
       replaceState = args.shift();
     } else {
       replaceState = false;
@@ -295,8 +317,8 @@ pie.app = pie.base.extend('app', {
 
   // When a link is clicked, go there without a refresh if we recognize the route.
   setupSinglePageLinks: function() {
-    var target = pie.qs(this.options.navigationContainer || this.options.uiTarget);
-    pie.dom.on(target, 'click', this.handleSinglePageLinkClick.bind(this), 'a[href]');
+    var target = Pie.qs(this.options.navigationContainer || this.options.uiTarget);
+    Dom.on(target, 'click', this.handleSinglePageLinkClick.bind(this), 'a[href]');
   },
 
   // Show any notification which have been preserved via local storage.
@@ -343,4 +365,4 @@ pie.app = pie.base.extend('app', {
       Object.keys &&
       Number.prototype.toFixed);
   }
-}, pie.mixins.container);
+}, Container);

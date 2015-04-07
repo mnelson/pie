@@ -1,7 +1,11 @@
+var Arr = require('./../extensions/array');
+var Fn  = require('./../extensions/function');
+var Obj = require('./../extensions/object');
+
 // # Bindings Mixin
 // A mixin to provide two way data binding between a model and dom elements.
 // This mixin should be used with a pie view.
-pie.mixins.bindings = (function(){
+module.exports = (function(){
 
 
   var integrations = {};
@@ -35,7 +39,7 @@ pie.mixins.bindings = (function(){
     var getClassNames = function(string) {
       if(!string) return [];
       string = String(string);
-      return pie.array.compact(pie.array.map(string.split(/[\,\s]/), 'trim', true), true);
+      return Arr.compact(Arr.map(string.split(/[\,\s]/), 'trim', true), true);
     };
 
     return {
@@ -99,7 +103,7 @@ pie.mixins.bindings = (function(){
     var index = function(arr, value) {
       if(!arr) return -1;
       value = String(value);
-      return pie.array.indexOf(arr, function(e){ return String(e) === value; });
+      return Arr.indexOf(arr, function(e){ return String(e) === value; });
     };
 
     return {
@@ -109,17 +113,17 @@ pie.mixins.bindings = (function(){
         // If we have an array, manage the values.
         if(binding.dataType === 'array') {
 
-          var existing = pie.array.from(binding.model.get(binding.attr)), i;
+          var existing = Arr.from(binding.model.get(binding.attr)), i;
 
           i = index(existing, el.value);
 
           // If we are checked and we don't already have it, add it.
           if(el.checked && i < 0) {
-            existing = pie.array.dup(existing);
+            existing = Arr.dup(existing);
             existing.push(el.value);
           // If we are not checked but we do have it, then we add it.
           } else if(!el.checked && i >= 0) {
-            existing = pie.array.dup(existing);
+            existing = Arr.dup(existing);
             existing.splice(i, 1);
           }
 
@@ -233,7 +237,7 @@ pie.mixins.bindings = (function(){
 
     // Note that `undefined` and `null` will result in `[]`.
     array: function(raw) {
-      return pie.array.from(raw);
+      return Arr.from(raw);
     },
 
     boolean: (function(){
@@ -376,7 +380,7 @@ pie.mixins.bindings = (function(){
     if(!binding.toModel) return;
 
     // If a function is provided, use that as the base implementation.
-    if(pie.object.isFunction(binding.toModel)) {
+    if(Obj.isFunction(binding.toModel)) {
       binding._toModel = binding.toModel;
     } else {
       // Otherwise, we provide a default implementation.
@@ -394,7 +398,7 @@ pie.mixins.bindings = (function(){
 
     // If a debounce is requested, we apply the debounce to the wrapped function,
     // Leaving the base function untouched.
-    if(binding.debounce) binding.toModel = pie.fn.debounce(binding.toModel, binding.debounce);
+    if(binding.debounce) binding.toModel = Fn.debounce(binding.toModel, binding.debounce);
 
     // Multiple events could be supplied, separated by a space.
     var events = binding.trigger.split(' ');
@@ -411,7 +415,7 @@ pie.mixins.bindings = (function(){
     if(!binding.toView) return;
 
     // If a toView function is not provided, apply the default implementation.
-    if(!pie.object.isFunction(binding.toView)) {
+    if(!Obj.isFunction(binding.toView)) {
       binding.toView = function(changes) {
         binding.lastChange = changes && changes.get(binding.attr);
         applyValueToElements(this.el, binding);
@@ -445,7 +449,7 @@ pie.mixins.bindings = (function(){
     // this.bind({ attr: 'first_name' }, { attr: 'last_name' })
     // ```;
     bind: function() {
-      var wanted = pie.array.from(arguments);
+      var wanted = Arr.from(arguments);
       wanted = wanted.map(function(opts) {
         opts = normalizeBindingOptions.call(this, opts);
         return initCallbacks.call(this, opts);
@@ -478,7 +482,7 @@ pie.mixins.bindings = (function(){
         }
       }.bind(this));
 
-      pie.object.forEach(models, function(id, m) {
+      Obj.forEach(models, function(id, m) {
         m.deliverChangeRecords();
       });
 

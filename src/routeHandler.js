@@ -1,12 +1,17 @@
-pie.routeHandler = pie.base.extend('routeHandler', {
+var Pie  = require('./pie');
+var Base = require('./base');
+var SimpleViewTransition = require('./transitions/simple');
+var Obj = require('./extensions/object');
+
+module.exports = Base.extend('routeHandler', {
 
   init: function(app, options) {
     this.app = app;
-    this.options = pie.object.merge({
+    this.options = Obj.merge({
       viewNamespace: 'lib.views',
       uiTarget: 'body',
       viewKey: 'view',
-      viewTransitionClass: pie.simpleViewTransition,
+      viewTransitionClass: SimpleViewTransition,
       viewTransitionOptions: {}
     }, options);
 
@@ -40,7 +45,7 @@ pie.routeHandler = pie.base.extend('routeHandler', {
     // if the view that's in there is already loaded, don't remove / add again.
     if(current && current._pieName === this.urlModel.get(this.options.viewKey)) {
       this.emitter.fire('navigationUpdated', changeSet);
-      if(pie.object.has(current, 'navigationUpdated', true)) current.navigationUpdated(changeSet);
+      if(Obj.has(current, 'navigationUpdated', true)) current.navigationUpdated(changeSet);
       return true;
     }
 
@@ -56,7 +61,7 @@ pie.routeHandler = pie.base.extend('routeHandler', {
     var current = this.currentView(),
         target, viewClass, child, transition;
 
-    target = pie.qs(this.options.uiTarget);
+    target = Pie.qs(this.options.uiTarget);
 
     // Provide some events that can be observed around the transition process.
     this.emitter.fire('beforeViewChanged', changeSet);
@@ -66,7 +71,7 @@ pie.routeHandler = pie.base.extend('routeHandler', {
 
       // Use the view key of the urlModel to find the viewClass.
       // At this point we've already verified the view option exists, so we don't have to check it.
-      viewClass = pie.object.getPath(window, this.options.viewNamespace + '.' + this.urlModel.get(this.options.viewKey));
+      viewClass = Obj.getPath(window, this.options.viewNamespace + '.' + this.urlModel.get(this.options.viewKey));
 
       // The instance to be added. If the class is not defined, this could and should blow up.
       child = new viewClass({ app: this.app });
@@ -76,7 +81,7 @@ pie.routeHandler = pie.base.extend('routeHandler', {
       child._pieName = this.urlModel.get(this.options.viewKey);
 
       // Instantiate a transition object based on the app configuration.
-      transition = new this.options.viewTransitionClass(this.app, pie.object.merge({
+      transition = new this.options.viewTransitionClass(this.app, Obj.merge({
         oldChild: current,
         newChild: child,
         childName: "currentView",

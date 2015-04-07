@@ -1,25 +1,26 @@
 {
   "devDependencies": {
+    "express": "^4.10.6",
     "uglify-js": "~2.4.15"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test" : "open specRunner.html"
   },
   "name": "pie",
   "description": "Pie is a set of resources I use to develop fast, independent web applications. It's not a framework because frameworks aren't cool anymore, but pie is cool.",
   "version": "0.0.1",
-  "main": "server.js",
+  "main": "index.js",
   "directories": {
     "doc": "docs",
     "example": "examples"
   },
   "dependencies": {
-    "express": "^4.10.6",
-    "uglify-js": "^2.4.15"
+
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com//mnelson/pie.git"
+    "url": "https://github.com/taskrabbit/pie.git"
   },
   "keywords": [
     "mvc",
@@ -28,6 +29,6 @@
     "web",
     "app"
   ],
-  "author": "mnelson",
+  "author": "Mike Nelson <mike@mnelson.io> (http://mnelson.io)",
   "license": "ISC"
 }

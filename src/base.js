@@ -1,57 +1,61 @@
-pie.base = function() {
-  pie.setUid(this);
+var Pie = require('./pie');
+var Arr = require('./extensions/array');
+var Obj = require('./extensions/object');
+
+var Base = function() {
+  Pie.setUid(this);
   this.init.apply(this, arguments);
   if(!this.app) {
     if(this.options && this.options.app) this.app = this.options.app;
-    else this.app = pie.appInstance;
+    else this.app = Pie.appInstance;
   }
 };
-pie.base.prototype.init = function(){};
+Base.prototype.init = function(){};
 
-pie.base.prototype.reopen = function() {
-  var extensions = pie.array.change(arguments, 'from', 'flatten'),
+Base.prototype.reopen = function() {
+  var extensions = Arr.change(arguments, 'from', 'flatten'),
   extender = function(k,fn) {
-    this[k] = pie.base._wrap(fn, this[k]);
+    this[k] = Base._wrap(fn, this[k]);
   }.bind(this);
 
   extensions.forEach(function(e) {
-    pie.object.forEach(e, extender);
+    Obj.forEach(e, extender);
     if(e.init) e.init.call(this);
   }.bind(this));
 
   return this;
 };
 
-pie.base.subClasses = [];
+Base.subClasses = [];
 
-pie.base.extend = function() {
-  return pie.base._extend(pie.base, arguments);
+Base.extend = function() {
+  return Base._extend(Base, arguments);
 };
 
-pie.base.reopen = function() {
-  return pie.base._reopen(pie.base, arguments);
+Base.reopen = function() {
+  return Base._reopen(Base, arguments);
 };
 
-pie.base._extend = function(parentClass, extensions) {
-  extensions = pie.array.change(extensions, 'from', 'flatten');
+Base._extend = function(parentClass, extensions) {
+  extensions = Arr.change(extensions, 'from', 'flatten');
 
   var oldLength = extensions.length;
-  extensions = pie.array.compact(extensions);
+  extensions = Arr.compact(extensions);
 
   if(extensions.length !== oldLength) throw new Error("Null values not allowed");
 
   var name = "", child;
 
-  if(pie.object.isString(extensions[0])) {
+  if(Obj.isString(extensions[0])) {
     name = extensions.shift();
   }
 
-  if(pie.object.isFunction(extensions[0])) {
+  if(Obj.isFunction(extensions[0])) {
     extensions.unshift({init: extensions.shift()});
   }
 
   if(!name) {
-    name = pie.object.getPath(extensions[0], 'init.name') || '';
+    name = Obj.getPath(extensions[0], 'init.name') || '';
   }
 
   child = new Function(
@@ -76,11 +80,11 @@ pie.base._extend = function(parentClass, extensions) {
   child.prototype.className = name;
 
   child.extend = function() {
-    return pie.base._extend(child, arguments);
+    return Base._extend(child, arguments);
   };
 
   child.reopen = function() {
-    return pie.base._reopen(child, arguments);
+    return Base._reopen(child, arguments);
   };
 
   if(extensions.length) child.reopen(extensions);
@@ -88,16 +92,16 @@ pie.base._extend = function(parentClass, extensions) {
   return child;
 };
 
-pie.base._reopen = function(klass, extensions) {
-  extensions = pie.array.change(extensions, 'from', 'flatten', 'compact');
+Base._reopen = function(klass, extensions) {
+  extensions = Arr.change(extensions, 'from', 'flatten', 'compact');
   extensions.forEach(function(ext) {
-    pie.object.forEach(ext, function(k,v) {
-      klass.prototype[k] = pie.base._wrap(v, klass.prototype[k]);
+    Obj.forEach(ext, function(k,v) {
+      klass.prototype[k] = Base._wrap(v, klass.prototype[k]);
     });
   });
 };
 
-pie.base._wrap = (function() {
+Base._wrap = (function() {
 
   var fnTest = /xyz/.test(function(){ "xyz"; });
   fnTest = fnTest ? /\b_super\b/ : /.*/;
@@ -110,9 +114,9 @@ pie.base._wrap = (function() {
     // if there is no old definition
     if(oldF == null) return newF;
     // if we're not overriding with a function
-    if(!pie.object.isFunction(newF)) return newF;
+    if(!Obj.isFunction(newF)) return newF;
     // if we're not overriding a function
-    if(!pie.object.isFunction(oldF)) return newF;
+    if(!Obj.isFunction(oldF)) return newF;
     // if it doesn't call _super, don't bother wrapping.
     if(!fnTest.test(newF)) return newF;
 
@@ -126,3 +130,6 @@ pie.base._wrap = (function() {
     };
   };
 })();
+
+
+module.exports = Base;

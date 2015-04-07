@@ -1,3 +1,6 @@
+var Model = require('./model');
+var Obj   = require('./extensions/object');
+
 // # Pie Config
 // A place to store app configuration information.
 // It allows for dynamic subconfigs to be defined as well.
@@ -23,7 +26,8 @@
 // app.config.get('analyticsEnabled');
 // //=> true
 // ```
-pie.config = pie.model.extend('config', {
+
+module.exports = Model.extend('config', {
 
   init: function(app, options) {
     options = options || {};
@@ -40,12 +44,12 @@ pie.config = pie.model.extend('config', {
     defaults = this.get(dynamic + 'Config.defaults');
     conf = val && this.get(dynamic + 'Config.' + val);
 
-    this.sets(pie.object.deepMerge({}, defaults, conf));
+    this.sets(Obj.deepMerge({}, defaults, conf));
   },
 
   dynamic: function(dynamic, obj) {
     var current = this.get(dynamic + 'Config') || {};
-    this.set(dynamic + 'Config', pie.object.deepMerge(current, obj));
+    this.set(dynamic + 'Config', Obj.deepMerge(current, obj));
 
     if(!this.dynamicKeys[dynamic]) {
       this.dynamicKeys[dynamic] = true;

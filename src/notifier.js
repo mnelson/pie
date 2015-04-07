@@ -1,13 +1,19 @@
+var Pie  = require('./pie');
+var Base = require('./base');
+var List = require('./list');
+var Arr  = require('./extensions/array');
+var Obj  = require('./extensions/object');
+
 // # Pie Notifier
 // A class which provides an interface for rendering page-level notifications.
 // This does only structures and manages the data to be used by a view. This does not impelement
 // UI notifications.
-pie.notifier = pie.base.extend('notifier', {
+module.exports = Base.extend('notifier', {
 
   init: function(app, options) {
     this.options = options || {};
-    this.app = app || this.options.app || pie.appInstance;
-    this.notifications = new pie.list([]);
+    this.app = app || this.options.app || Pie.appInstance;
+    this.notifications = new List([]);
   },
 
   // remove all alerts, potentially filtering by the type of alert.
@@ -33,11 +39,11 @@ pie.notifier = pie.base.extend('notifier', {
     type = type || 'message';
     autoRemove = this.getAutoRemoveTimeout(autoRemove);
 
-    messages = pie.array.from(messages);
+    messages = Arr.from(messages);
     messages = messages.map(function(m){ return this.app.i18n.attempt(m); }.bind(this));
 
     var msg = {
-      id: pie.unique(),
+      id: Pie.unique(),
       messages: messages,
       type: type
     };
@@ -54,12 +60,12 @@ pie.notifier = pie.base.extend('notifier', {
 
   getAutoRemoveTimeout: function(timeout) {
     if(timeout === undefined) timeout = true;
-    if(timeout && !pie.object.isNumber(timeout)) timeout = 7000;
+    if(timeout && !Obj.isNumber(timeout)) timeout = 7000;
     return timeout;
   },
 
   remove: function(msgId) {
-    var msgIdx = pie.array.indexOf(this.notifications.get('items'), function(m) {
+    var msgIdx = Arr.indexOf(this.notifications.get('items'), function(m) {
       return m.id === msgId;
     });
 

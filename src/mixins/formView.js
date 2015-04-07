@@ -1,3 +1,8 @@
+var Model = require('./../model');
+var Validatable = require('./validatable');
+var Arr = require('./../extensions/array');
+var Obj = require('./../extensions/object');
+
 // # Pie FormView
 // A view designed to ease form modeling & interactions.
 // FormViews make use of bindings & validations to simplify the input, validation, and submission of forms.
@@ -50,7 +55,7 @@
 //   10. The ajax request is made to the form target.
 //   11. If unsuccessful, an `onFailure` event & function are triggered.
 //   12. If successful, an `onSuccess` event & function are triggered.
-pie.mixins.formView = {
+module.exports = {
 
   init: function() {
     this._super.apply(this, arguments);
@@ -69,9 +74,9 @@ pie.mixins.formView = {
   /* we build a model if one isn't present already */
   /* if the model doesn't know how to perform validations, we extend it with the functionality */
   _ensureModel: function() {
-    this.model = this.model || this.options.model || new pie.model({});
+    this.model = this.model || this.options.model || new Model({});
 
-    if(!this.model.validates) this.model.reopen(pie.mixins.validatable);
+    if(!this.model.validates) this.model.reopen(Validatable);
   },
 
 
@@ -175,7 +180,7 @@ pie.mixins.formView = {
   // formView.performSubmit(<form>, {foo: 'bar'}, function(isSuccess, data){ console.log(isSuccess, data); });
   // ```
   performSubmit: function(form, data, cb) {
-    var request = app.ajax.ajax(pie.object.merge({
+    var request = app.ajax.ajax(Obj.merge({
       url: form.getAttribute('action'),
       verb: form.getAttribute('method') || 'post',
       data: data
@@ -201,7 +206,7 @@ pie.mixins.formView = {
   // The data to be sent to the server.
   // By default these are the defined fields extracted out of the model.
   prepareSubmissionData: function(cb) {
-    var fieldNames = pie.array.map(this.options.fields, 'name'),
+    var fieldNames = Arr.map(this.options.fields, 'name'),
     data = this.model.gets(fieldNames);
 
     if(cb) cb(data);

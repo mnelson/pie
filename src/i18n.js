@@ -1,3 +1,10 @@
+var Model   = require('./model');
+var Arr     = require('./extensions/array');
+var Fn      = require('./extensions/function');
+var Obj     = require('./extensions/object');
+var PieDate = require('./extensions/date');
+var Str     = require('./extensions/string');
+
 // # Pie i18n
 // The i18n class is in charge of the defining and lookup of translations, the
 // defining and lookup of date formats, and the standardization of "word" things.
@@ -36,11 +43,11 @@
 // ```
 
 // _**Todo:** allow a default scope (eg, en, en-GB, etc). Currently the assumption is that only the relevant translations are loaded._
-pie.i18n = pie.model.extend('i18n', {
+var I18n = Model.extend('i18n', {
 
   init: function(app, options) {
-    var data = pie.object.merge({}, pie.i18n.defaultTranslations);
-    options = pie.object.deepMerge({
+    var data = Obj.merge({}, I18n.defaultTranslations);
+    options = Obj.deepMerge({
       settings: {
         interpolationStart: '%{',
         interpolationEnd: '}',
@@ -50,11 +57,11 @@ pie.i18n = pie.model.extend('i18n', {
     }, options || {}, {app: app});
 
 
-    var escapedInterpEnd = pie.string.escapeRegex(options.settings.interpolationEnd),
-    escapedNestedEnd = pie.string.escapeRegex(options.settings.nestedEnd);
+    var escapedInterpEnd = Str.escapeRegex(options.settings.interpolationEnd),
+    escapedNestedEnd = Str.escapeRegex(options.settings.nestedEnd);
 
-    options.settings.interpolationRegex = new RegExp(pie.string.escapeRegex(options.settings.interpolationStart) + '([^' + escapedNestedEnd + ']+)' + escapedInterpEnd, 'g');
-    options.settings.nestedRegex = new RegExp(pie.string.escapeRegex(options.settings.nestedStart) + '([^' + escapedNestedEnd + ']+)' + escapedNestedEnd, 'g');
+    options.settings.interpolationRegex = new RegExp(Str.escapeRegex(options.settings.interpolationStart) + '([^' + escapedNestedEnd + ']+)' + escapedInterpEnd, 'g');
+    options.settings.nestedRegex = new RegExp(Str.escapeRegex(options.settings.nestedStart) + '([^' + escapedNestedEnd + ']+)' + escapedNestedEnd, 'g');
 
     this._super(data, options);
   },
@@ -96,7 +103,7 @@ pie.i18n = pie.model.extend('i18n', {
 
   _interpolateTranslation: function(t, data) {
     return this._expand(t, this.options.settings.interpolationRegex, function(match, key) {
-      return pie.object.getPath(data, key);
+      return Obj.getPath(data, key);
     });
   },
 
@@ -125,8 +132,8 @@ pie.i18n = pie.model.extend('i18n', {
       d = parseInt(d, 10);
       if(String(d).length < 13) d *= 1000;
       d = new Date(d);
-    } else if(pie.object.isString(d)) {
-      d = pie.date.timeFromISO(d);
+    } else if(Obj.isString(d)) {
+      d = PieDate.timeFromISO(d);
     } else {
       /* let the system parse */
       d = new Date(d);
@@ -188,7 +195,7 @@ pie.i18n = pie.model.extend('i18n', {
   // i18n.attempt('.foo.bar.baz')
   // ```
   attempt: function(/* args */) {
-    var args = pie.array.from(arguments),
+    var args = Arr.from(arguments),
     key = args[0],
     m = key && key.match(this.keyCheck);
 
@@ -207,7 +214,7 @@ pie.i18n = pie.model.extend('i18n', {
   // i18n.load({foo: 'Bar %{baz}'});
   // ```
   load: function(data, shallow) {
-    var f = shallow ? pie.object.merge : pie.object.deepMerge;
+    var f = shallow ? Obj.merge : Obj.deepMerge;
     f.call(null, this.data, data);
   },
 
@@ -216,7 +223,7 @@ pie.i18n = pie.model.extend('i18n', {
   // Given a `path`, look up a translation.
   // If the second argument `data` is provided, the `data` will be
   // interpolated into the translation before returning.
-  // Arguments 3+ are string modification methods as defined by `pie.string`.
+  // Arguments 3+ are string modification methods as defined by `Str`.
   // `translate` is aliased as `t`.
   // ```
   // //=> Assuming 'foo.path' is defined as "This is %{name}"
@@ -224,13 +231,13 @@ pie.i18n = pie.model.extend('i18n', {
   // //=> "THIS IS BAR'S"
   // ```
   translate: function(/* path, data, stringChange1, stringChange2 */) {
-    var changes = pie.array.from(arguments),
+    var changes = Arr.from(arguments),
     path = changes.shift(),
-    data = pie.object.isObject(changes[0]) ? changes.shift() : undefined,
+    data = Obj.isObject(changes[0]) ? changes.shift() : undefined,
     translation = this.get(path),
     count;
 
-    if (pie.object.has(data, 'count') && pie.object.isObject(translation)) {
+    if (Obj.has(data, 'count') && Obj.isObject(translation)) {
       count = (data.count || 0).toString();
       count = this._countAlias[count] || (count > 0 ? 'other' : 'negother');
       translation = translation[count] === undefined ? translation.other : translation[count];
@@ -238,9 +245,9 @@ pie.i18n = pie.model.extend('i18n', {
 
     if(!translation) {
 
-      if(pie.object.has(data, 'default')) {
-        var def = pie.fn.valueFrom(data.default);
-        if(pie.object.isString(def)) {
+      if(Obj.has(data, 'default')) {
+        var def = Fn.valueFrom(data.default);
+        if(Obj.isString(def)) {
           translation = this.attempt(def);
         } else {
           translation = def;
@@ -255,14 +262,14 @@ pie.i18n = pie.model.extend('i18n', {
     }
 
 
-    if(pie.object.isString(translation)) {
+    if(Obj.isString(translation)) {
       translation = translation.indexOf(this.options.settings.nestedStart) === -1 ? translation : this._nestedTranslate(translation, data);
       translation = translation.indexOf(this.options.settings.interpolationStart) === -1 ? translation : this._interpolateTranslation(translation, data);
     }
 
     if(changes.length) {
       changes.unshift(translation);
-      translation = pie.string.change.apply(null, changes);
+      translation = Str.change.apply(null, changes);
     }
 
     return translation;
@@ -392,10 +399,10 @@ pie.i18n = pie.model.extend('i18n', {
 });
 
 /* Aliases */
-pie.i18n.prototype.t = pie.i18n.prototype.translate;
-pie.i18n.prototype.l = pie.i18n.prototype.strftime;
+I18n.prototype.t = I18n.prototype.translate;
+I18n.prototype.l = I18n.prototype.strftime;
 
-pie.i18n.defaultTranslations = {
+I18n.defaultTranslations = {
   app: {
     sentence: {
       conjunction: ' and ',
@@ -529,3 +536,5 @@ pie.i18n.defaultTranslations = {
     }
   }
 };
+
+module.exports = I18n;

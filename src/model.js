@@ -1,3 +1,9 @@
+var Pie       = require('./pie');
+var Base      = require('./base');
+var Arr       = require('./extensions/array');
+var Obj       = require('./extensions/object');
+var Str       = require('./extensions/string');
+var ChangeSet = require('./mixins/changeSet');
 // # Pie Model
 // ### Setters and Getters
 // pie.model provides a basic interface for object management and observation.
@@ -72,12 +78,12 @@
 // for a matching function name within the model.
 
 
-pie.model = pie.base.extend('model', {
+module.exports = Base.extend('model', {
 
   init: function(d, options) {
-    this.data = pie.object.merge({_version: 1}, d);
+    this.data = Obj.merge({_version: 1}, d);
     this.options = options || {};
-    this.app = this.app || this.options.app || pie.appInstance;
+    this.app = this.app || this.options.app || Pie.appInstance;
     this.observations = {};
     this.changeRecords = [];
     this.deliveringRecords = 0;
@@ -94,14 +100,14 @@ pie.model = pie.base.extend('model', {
   // model.compute('displayName', function(){}, 'fullName');
   // ```
   compute: function(/* name, fn?[, prop1, prop2 ] */) {
-    var props = pie.array.from(arguments),
+    var props = Arr.from(arguments),
     name = props.shift(),
     fn = props.shift(),
     wrap;
 
-    props = pie.array.flatten(props);
+    props = Arr.flatten(props);
 
-    if(!pie.object.isFunction(fn)) {
+    if(!Obj.isFunction(fn)) {
       props.unshift(fn);
       fn = this[name].bind(this);
     }
@@ -129,7 +135,7 @@ pie.model = pie.base.extend('model', {
 
 
     var changeSet = this.changeRecords,
-    observers = pie.object.values(this.observations),
+    observers = Obj.values(this.observations),
     invoker = function(obj) {
       if(changeSet.hasAny.apply(changeSet, obj.keys)) {
         obj.fn.call(null, changeSet);
@@ -138,13 +144,13 @@ pie.model = pie.base.extend('model', {
     o, idx;
 
     /* We modify the `changeSet` array with the `pie.mixins.changeSet`. */
-    pie.object.merge(changeSet, pie.mixins.changeSet);
+    Obj.merge(changeSet, ChangeSet);
 
 
     /* Deliver change records to all computed properties first. */
     /* This will ensure that the change records include the computed property changes */
     /* along with the original property changes. */
-    while(~(idx = pie.array.indexOf(observers, 'computed'))) {
+    while(~(idx = Arr.indexOf(observers, 'computed'))) {
       o = observers[idx];
       observers.splice(idx, 1);
       invoker(o);
@@ -178,7 +184,7 @@ pie.model = pie.base.extend('model', {
   // //=> undefined
   // ```
   get: function(key) {
-    return pie.object.getPath(this.data, key);
+    return Obj.getPath(this.data, key);
   },
 
   // ** pie.model.getOrSet **
@@ -209,12 +215,12 @@ pie.model = pie.base.extend('model', {
   // //=> {foo: {baz: 'fooBazValue'}, bar: 'barValue'}
   // ```
   gets: function() {
-    var args = pie.array.change(arguments, 'from', 'flatten', 'compact'),
+    var args = Arr.change(arguments, 'from', 'flatten', 'compact'),
     o = {};
 
     args.forEach(function(arg){
       if(this.has(arg)) {
-        pie.object.setPath(o, arg, this.get(arg));
+        Obj.setPath(o, arg, this.get(arg));
       }
     }.bind(this));
 
@@ -229,7 +235,7 @@ pie.model = pie.base.extend('model', {
   // //=> true | false
   // ```
   has: function(path) {
-    return !!pie.object.hasPath(this.data, path);
+    return !!Obj.hasPath(this.data, path);
   },
 
   // ** pie.model.is **
@@ -254,8 +260,8 @@ pie.model = pie.base.extend('model', {
   // model.get('location')
   // //=> {city: "San Francico", lat: 37.77, lng: -122.44}
   merge: function(/* objs */) {
-    var obj = arguments.length > 1 ? pie.object.deepMerge.apply(null, arguments) : arguments[0]
-    obj = pie.object.flatten(obj);
+    var obj = arguments.length > 1 ? Obj.deepMerge.apply(null, arguments) : arguments[0]
+    obj = Obj.flatten(obj);
     this.sets(obj);
   },
 
@@ -274,8 +280,8 @@ pie.model = pie.base.extend('model', {
   // }, 'fullName');
   // ```
   observe: function(/* fn1[, fn2, fn3[, key1, key2, key3]] */) {
-    var args = pie.array.change(arguments, 'from', 'flatten'),
-    part = pie.array.partition(args, pie.object.isFunction),
+    var args = Arr.change(arguments, 'from', 'flatten'),
+    part = Arr.partition(args, Obj.isFunction),
     fns = part[0],
     keys = part[1];
 
@@ -284,7 +290,7 @@ pie.model = pie.base.extend('model', {
     fns.forEach(function(fn){
 
       /* Setting the uid is needed because we'll want to manage unobservation effectively. */
-      pie.setUid(fn);
+      Pie.setUid(fn);
 
       this.observations[fn.pieId] = {
         fn: fn,
@@ -331,14 +337,14 @@ pie.model = pie.base.extend('model', {
   set: function(key, value, options) {
     var recursive = (!options || !options.noRecursive),
     deleteRecursive = (!options || !options.noDeleteRecursive),
-    steps = ~key.indexOf('.') && recursive ? pie.string.pathSteps(key) : null,
+    steps = ~key.indexOf('.') && recursive ? Str.pathSteps(key) : null,
     o, oldKeys, type, change;
 
     change = { name: key, object: this.data };
 
     if(this.has(key)) {
       change.type = 'update';
-      change.oldValue = pie.object.getPath(this.data, key);
+      change.oldValue = Obj.getPath(this.data, key);
 
       /* If we haven't actually changed, don't bother doing anything. */
       if((!options || !options.force) && value === change.oldValue) return this;
@@ -356,12 +362,12 @@ pie.model = pie.base.extend('model', {
 
     /* If we are "unsetting" the value, delete the path from `this.data`. */
     if(value === undefined) {
-      pie.object.deletePath(this.data, key, deleteRecursive);
+      Obj.deletePath(this.data, key, deleteRecursive);
       change.type = 'delete';
 
     /* Otherwise, we set the value within `this.data`. */
     } else {
-      pie.object.setPath(this.data, key, value);
+      Obj.setPath(this.data, key, value);
       change.type = change.type || 'add';
     }
 
@@ -419,12 +425,12 @@ pie.model = pie.base.extend('model', {
   // //=> {_version: 3, bar: 'foo'}
   // ```
   setData: function(obj, options) {
-    var existing = Object.keys(pie.object.flatten(this.data)),
-    given = Object.keys(pie.object.flatten(obj)),
-    removed = pie.array.subtract(existing, given),
-    rmOptions = pie.object.merge({}, options, {skipObservers: true});
+    var existing = Object.keys(Obj.flatten(this.data)),
+    given = Object.keys(Obj.flatten(obj)),
+    removed = Arr.subtract(existing, given),
+    rmOptions = Obj.merge({}, options, {skipObservers: true});
 
-    removed = pie.array.remove(removed, '_version');
+    removed = Arr.remove(removed, '_version');
 
     removed.forEach(function(rm){
       this.set(rm, undefined, rmOptions);
@@ -441,7 +447,7 @@ pie.model = pie.base.extend('model', {
   // model.sets({foo: 'bar', baz: 'qux'}, {skipObservers: treu});
   // ```
   sets: function(obj, options) {
-    pie.object.forEach(obj, function(k,v) {
+    Obj.forEach(obj, function(k,v) {
       this.set(k, v, {skipObservers: true});
     }.bind(this));
 
@@ -462,7 +468,7 @@ pie.model = pie.base.extend('model', {
     var owned = this.get(path);
     if(owned === value) return true;
     else if(owned == null) return false;
-    else if (pie.object.isRegExp(value)) return value.test(String(owned));
+    else if (Obj.isRegExp(value)) return value.test(String(owned));
     else return false;
   },
 
@@ -491,14 +497,14 @@ pie.model = pie.base.extend('model', {
   // If a subset of the original keys are provided it will only unregister
   // for those provided.
   unobserve: function(/* fn1[, fn2, fn3[, key1, key2, key3]] */) {
-    var args = pie.array.change(arguments, 'from', 'flatten'),
-    part = pie.array.partition(args, pie.object.isFunction),
+    var args = Arr.change(arguments, 'from', 'flatten'),
+    part = Arr.partition(args, Obj.isFunction),
     fns = part[0],
     keys = part[1],
     observation;
 
     fns.forEach(function(fn){
-      pie.setUid(fn);
+      Pie.setUid(fn);
 
       observation = this.observations[fn.pieId];
       if(!observation) return;
@@ -508,7 +514,7 @@ pie.model = pie.base.extend('model', {
         return;
       }
 
-      observation.keys = pie.array.subtract(observation.keys, keys);
+      observation.keys = Arr.subtract(observation.keys, keys);
 
       if(!observation.keys.length) {
         delete this.observations[fn.pieId];

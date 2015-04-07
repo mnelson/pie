@@ -1,3 +1,9 @@
+var Pie   = require('./pie');
+var Model = require('./model');
+var Arr   = require('./extensions/array');
+var Fn    = require('./extensions/function');
+var Obj   = require('./extensions/object');
+
 // # Pie Resources
 //
 // An external resource loader. It specializes in retrieving scripts, stylesheets, and generic ajax content.
@@ -11,7 +17,7 @@
 //   google.Maps.doStuff();
 // });
 // ```
-pie.resources = pie.model.extend('resources', {
+module.exports = Model.extend('resources', {
 
   // ** pie.resources.init **
   //
@@ -27,13 +33,13 @@ pie.resources = pie.model.extend('resources', {
       app: app
     });
 
-    pie.object.forEach(function(k,v) {
+    Obj.forEach(function(k,v) {
       this.define(k, v);
     }.bind(this));
   },
 
   _appendNode: function(node) {
-    var target = pie.qs('head');
+    var target = Pie.qs('head');
     target = target || document.body;
     target.appendChild(node);
   },
@@ -46,7 +52,7 @@ pie.resources = pie.model.extend('resources', {
   },
 
   _normalizeSrc: function(srcOrOptions) {
-    var options = typeof srcOrOptions === 'string' ? {src: srcOrOptions} : pie.object.merge({}, srcOrOptions);
+    var options = typeof srcOrOptions === 'string' ? {src: srcOrOptions} : Obj.merge({}, srcOrOptions);
     return options;
   },
 
@@ -58,7 +64,7 @@ pie.resources = pie.model.extend('resources', {
   // * **src** - the url of the request
   // * ** * ** - any valid ajax options
   _loadajax: function(options, resourceOnload) {
-    var ajaxOptions = pie.object.merge({
+    var ajaxOptions = Obj.merge({
       verb: 'GET',
       url: options.src
     }, options);
@@ -75,7 +81,7 @@ pie.resources = pie.model.extend('resources', {
   _loadimage: function(options, resourceOnload) {
     var img = new Image();
     img.onload = function(){
-      resourceOnload(pie.object.merge({
+      resourceOnload(Obj.merge({
         img: img
       }, options));
     };
@@ -155,8 +161,8 @@ pie.resources = pie.model.extend('resources', {
   // resources.load({src: '/templates.html', dataSuccess: parseTemplates}, function callback(){});
   // ```
   load: function(/* src1, src2, src3, onload */) {
-    var sources = pie.array.change(arguments, 'from', 'flatten', 'compact'),
-    onload = pie.object.isFunction(pie.array.last(sources)) ? sources.pop() : function(){},
+    var sources = Arr.change(arguments, 'from', 'flatten', 'compact'),
+    onload = Obj.isFunction(Arr.last(sources)) ? sources.pop() : function(){},
     fns;
 
     sources = sources.map(this._normalizeSrc.bind(this));
@@ -219,6 +225,6 @@ pie.resources = pie.model.extend('resources', {
     }.bind(this));
 
     /* now start loading all the resources */
-    pie.fn.async(fns, onload);
+    Fn.async(fns, onload);
   }
 });

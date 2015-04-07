@@ -1,4 +1,13 @@
-pie.ajaxRequest = pie.model.extend('ajaxRequest', {
+var Emitter = require('./emitter');
+var Pie     = require('./pie');
+var Model   = require('./model');
+var Obj     = require('./extensions/object');
+var Arr     = require('./extensions/array');
+var Str     = require('./extensions/string');
+var Fn      = require('./extensions/function');
+var Valid   = require('./mixins/validatable');
+
+module.exports = Model.extend('ajaxRequest', {
 
   init: function(data, options) {
     this._super(data, options);
@@ -6,11 +15,11 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
     this.getOrSet('headers', {});
 
     this.xhr = null;
-    this.emitter = new pie.emitter();
+    this.emitter = new Emitter();
 
     this.validates({
       url: { presence: true },
-      verb: { inclusion: { in: pie.object.values(this.VERBS) }}
+      verb: { inclusion: { in: Obj.values(this.VERBS) }}
     }, null);
   },
 
@@ -23,7 +32,7 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
   },
 
   _append: function(name, fns, immediate) {
-    fns = pie.array.change(fns, 'from', 'flatten');
+    fns = Arr.change(fns, 'from', 'flatten');
     fns.forEach(function(fn){
       this.emitter.on(name, fn, {immediate: immediate});
     }.bind(this));
@@ -61,12 +70,12 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
   _parseOptions: function(options) {
     if(!options) return;
 
-    options = pie.object.merge({}, options);
+    options = Obj.merge({}, options);
 
     ['setup', 'complete', 'dataSuccess', 'error', 'extraError', 'progress', 'success', 'uploadProgress', 'setModel'].forEach(function(n){
       if(options[n]) {
 
-        pie.array.from(options[n]).forEach(function(fn){
+        Arr.from(options[n]).forEach(function(fn){
           this[n](fn);
         }.bind(this));
 
@@ -107,7 +116,7 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
       }
 
       if(!headers['Content-Type']) {
-        if(pie.object.isString(data) || window.FormData && data instanceof window.FormData) {
+        if(Obj.isString(data) || window.FormData && data instanceof window.FormData) {
           headers['Content-Type'] = 'application/x-www-form-urlencoded';
         // if we aren't already sending a string, we will encode to json.
         } else {
@@ -117,7 +126,7 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
 
     }
 
-    pie.object.forEach(headers, function(k,v) {
+    Obj.forEach(headers, function(k,v) {
       xhr.setRequestHeader(k, v);
     });
 
@@ -125,10 +134,10 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
 
   _applyCsrfToken: function(xhr) {
 
-    var token = pie.fn.valueFrom(this.get('csrfToken'));
+    var token = Fn.valueFrom(this.get('csrfToken'));
 
     token = token || this.app.cache.getOrSet('csrfToken', function() {
-      var el = pie.qs('meta[name="csrf-token"]');
+      var el = Pie.qs('meta[name="csrf-token"]');
       return el ? el.getAttribute('content') : null;
     });
 
@@ -149,7 +158,7 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
       try{
         return xhr.responseText.trim().length ? JSON.parse(xhr.responseText) : {};
       } catch(err) {
-        this.app.debug.apply(this.app, pie._debugArgs("could not parse JSON response: " + err));
+        this.app.debug.apply(this.app, Pie._debugArgs("could not parse JSON response: " + err));
         return {};
       }
     },
@@ -168,10 +177,10 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
     self = this;
 
     if(verb === this.VERBS.get && data) {
-      url = pie.string.urlConcat(url, pie.object.serialize(data));
+      url = Str.urlConcat(url, Obj.serialize(data));
     }
 
-    url = pie.string.normalizeUrl(url);
+    url = Str.normalizeUrl(url);
 
     if(this.hasCallback('progress')) {
       xhr.addEventListener('progress', this._onProgress.bind(this), false);
@@ -228,10 +237,10 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
 
     if(this.get('verb') !== this.VERBS.get) {
 
-      if(pie.object.isString(data) || window.FormData && data instanceof window.FormData) {
+      if(Obj.isString(data) || window.FormData && data instanceof window.FormData) {
         d = data;
       } else {
-        d = JSON.stringify(pie.object.compact(data));
+        d = JSON.stringify(Obj.compact(data));
       }
     }
 
@@ -285,7 +294,7 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
   },
 
   setModel: function() {
-    var fns = pie.array.from(arguments).map(function(m){ return m.sets.bind(m); });
+    var fns = Arr.from(arguments).map(function(m){ return m.sets.bind(m); });
     this._append('setModel', fns, true);
   },
 
@@ -308,4 +317,4 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
     return this;
   },
 
-}, pie.mixins.validatable);
+}, Valid);

@@ -1,4 +1,7 @@
-pie.mixins.container = {
+var Arr = require('./../extensions/array');
+var Obj = require('./../extensions/object');
+
+module.exports = {
 
   init: function() {
     this.children = [];
@@ -17,13 +20,13 @@ pie.mixins.container = {
     child._nameWithinParent = name;
     child.parent = this;
 
-    if(pie.object.has(child, 'addedToParent', true)) child.addedToParent.call(child);
+    if(Obj.has(child, 'addedToParent', true)) child.addedToParent.call(child);
 
     return this;
   },
 
   addChildren: function(obj) {
-    pie.object.forEach(obj, function(name, child) {
+    Obj.forEach(obj, function(name, child) {
       this.addChild(name, child);
     }.bind(this));
   },
@@ -56,7 +59,7 @@ pie.mixins.container = {
   },
 
   bubble: function() {
-    var args = pie.array.from(arguments),
+    var args = Arr.from(arguments),
     fname = args.shift(),
     obj = this.parent;
 
@@ -68,13 +71,13 @@ pie.mixins.container = {
   },
 
   sendToChildren: function(/* fnName, arg1, arg2 */) {
-    var allArgs = pie.array.change(arguments, 'from'),
+    var allArgs = Arr.change(arguments, 'from'),
     fnName = allArgs[0],
     args = allArgs.slice(1);
 
     this.children.forEach(function(child){
-      if(pie.object.has(child, fnName, true)) child[fnName].apply(child, args);
-      if(pie.object.has(child, 'sendToChildren', true)) child.sendToChildren.apply(child, allArgs);
+      if(Obj.has(child, fnName, true)) child[fnName].apply(child, args);
+      if(Obj.has(child, 'sendToChildren', true)) child.sendToChildren.apply(child, allArgs);
     }.bind(this));
   },
 
@@ -96,7 +99,7 @@ pie.mixins.container = {
       delete child._nameWithinParent;
       delete child.parent;
 
-      if(pie.object.has(child, 'removedFromParent', true)) child.removedFromParent.call(child, this);
+      if(Obj.has(child, 'removedFromParent', true)) child.removedFromParent.call(child, this);
     }
 
     return this;

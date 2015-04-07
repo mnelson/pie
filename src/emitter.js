@@ -1,3 +1,9 @@
+var Model = require('./model');
+var Arr   = require('./extensions/array');
+var Str   = require('./extensions/string');
+var Fn    = require('./extensions/function');
+var Obj   = require('./extensions/object');
+
 // # Pie Emitter
 //
 // An emitter is an event subscriber & notifier. It's similar to a pubsub implementation but
@@ -16,7 +22,7 @@
 // emitter.fire('foo');
 // emitter.fireSequence('bar');
 // ```
-pie.emitter = pie.model.extend('emitter', {
+module.exports = Model.extend('emitter', {
 
   init: function() {
     this._super({
@@ -69,7 +75,7 @@ pie.emitter = pie.model.extend('emitter', {
     var invalidEventNameRegex = /^around/;
 
     return function(/* eventNames, fn */) {
-      var eventNames = pie.array.from(arguments),
+      var eventNames = Arr.from(arguments),
       fn = eventNames.pop(),
       observers;
 
@@ -80,7 +86,7 @@ pie.emitter = pie.model.extend('emitter', {
         }.bind(this);
       }.bind(this));
 
-      pie.fn.async(observers, fn);
+      Fn.async(observers, fn);
     };
   })(),
 
@@ -105,12 +111,12 @@ pie.emitter = pie.model.extend('emitter', {
       if(options.onceOnly) return;
     }
 
-    this.getOrSet('eventCallbacks.' + event, [])[meth](pie.object.merge({fn: fn}, options));
+    this.getOrSet('eventCallbacks.' + event, [])[meth](Obj.merge({fn: fn}, options));
   },
 
   // Same method signature of `_on`, but handles the inclusion of the `onceOnly` option.
   _once: function(event, fn, options, meth) {
-    options = pie.object.merge({onceOnly: true}, options);
+    options = Obj.merge({onceOnly: true}, options);
     this._on(event, fn, options, meth);
   },
 
@@ -177,7 +183,7 @@ pie.emitter = pie.model.extend('emitter', {
   // ```
   fire: function(/* event, arg1, arg2, */) {
 
-    var args = pie.array.from(arguments),
+    var args = Arr.from(arguments),
     event = args.shift(),
     callbacks = this.get('eventCallbacks.' + event),
     compactNeeded = false;
@@ -198,7 +204,7 @@ pie.emitter = pie.model.extend('emitter', {
     }
 
     /* if we removed callbacks, clean up */
-    if(compactNeeded) this.set('eventCallbacks.' + event, pie.array.compact(callbacks));
+    if(compactNeeded) this.set('eventCallbacks.' + event, Arr.compact(callbacks));
   },
 
   // ** pie.emitter.fireSequence **
@@ -212,9 +218,9 @@ pie.emitter = pie.model.extend('emitter', {
   // // fires "beforeFoo", fires "aroundFoo", invokes barFn, fires "foo", fires "afterFoo"
   // ```
   fireSequence: function(event, fn) {
-    var before = pie.string.modularize("before_" + event),
-        after  = pie.string.modularize("after_" + event),
-        around = pie.string.modularize('around_' + event);
+    var before = Str.modularize("before_" + event),
+        after  = Str.modularize("after_" + event),
+        around = Str.modularize('around_' + event);
 
     this.fire(before);
     this.fireAround(around, function() {
@@ -252,9 +258,9 @@ pie.emitter = pie.model.extend('emitter', {
         return cb.fn;
       });
 
-      if(compactNeeded) this.set('eventCallbacks.' + event, pie.array.compact(callbacks));
+      if(compactNeeded) this.set('eventCallbacks.' + event, Arr.compact(callbacks));
 
-      pie.fn.async(fns, onComplete);
+      Fn.async(fns, onComplete);
     } else {
       onComplete();
     }
