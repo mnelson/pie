@@ -3205,7 +3205,95 @@ pie.mixins.formView = {
   }
 
 };
-pie.mixins.validatable = {
+pie.mixins.listView = {
+  init: function() {
+    this._super.apply(this, arguments);
+    this.options.item = this.options.item || {};
+    this._ensureList();
+    this._ensureTemplate();
+  },
+
+  /* we build a list if one isn't present already */
+  _ensureList: function() {
+    this.list = this.list || this.options.list || new pie.list([]);
+  },
+
+  _ensureTemplate: function() {
+    if (this.options.template) return;
+
+    // TODO how is this gonna work
+    var name = 'listViewTemplate',
+      content = "<ul class='js-items-container'></ul>";
+
+    this.app.templates.registerTemplate(name, content);
+    this.options.item.uiTarget = '.js-items-container';
+    this.options.template = name;
+  },
+
+  setup: function() {
+    this.onChange(this.list, this.renderItems.bind(this), '_version');
+    this.emitter.waitUntil('afterRender', 'afterAttach', this.renderItems.bind(this));
+
+    this._super.apply(this, arguments);
+  },
+
+  renderItems: function(templateName) {
+    var container = this.qs(this.options.item.uiTarget),
+      content;
+
+    // TODO this should be a transition
+    container.classList.add('is-loading');
+    this._removeItems();
+    this._addItems();
+    container.classList.remove('is-loading');
+  },
+
+  _addItems: function() {
+    var items = this.listData(),
+      klass = this.options.item.klass || this._defaultItemKlass(),
+      opts = {uiTarget: this.qs(this.options.item.uiTarget)};
+
+    items.forEach(function(data, i) {
+      this.addChild('item-' + i, new klass(opts, data));
+    }.bind(this));
+  },
+
+  _removeItems: function() {
+    var regex = new RegExp('item');
+
+    if(this.children.length) {
+      Object.keys(this.childNames).forEach(function(k) {
+        if(!regex.test(k)) return;
+        var child = this.getChild(k);
+        this.removeChild(k);
+        child.teardown();
+      }.bind(this))
+    }
+  },
+
+  _defaultItemKlass: function() {
+    var tmpl = this.options.item.template;
+
+    return pie.activeView.extend('listItemView', function(opts, data) {
+      this.model = new pie.model(data);
+
+      this._super({
+        renderOnSetup: true,
+        setup: true,
+        template: tmpl
+      });
+    });
+  },
+
+  listData: function() {
+    if (this.list) {
+      return this.list.get('items') || [];
+    }
+
+    return [];
+  }
+
+};pie.mixins.validatable = {
 
   init: function() {
     this.validations = [];
@@ -6455,7 +6543,7 @@ pie.list = pie.model.extend('list', {
     return this.insert(0, value, options);
   }
 });
-// # Pie Navigator
+pie.listView = pie.view.extend('listView', pie.mixins.activeView, pie.mixins.listView);// # Pie Navigator
 // The navigator is in charge of observing browser navigation and updating it's data.
 // It's also the place to conduct push/replaceState history changes.
 // The navigator is simply a model, enabling observation, computed values, etc.
@@ -7345,6 +7433,32 @@ pie.templates = pie.model.extend('templates', {
     return pie.qs(this.options.templateSelector + '[id="' + name + '"]');
   },
 
+  ensureTemplate: function(name, cb) {
+    var node, content, src;
+
+    if(this.get(name)) {
+      cb(name);
+      return;
+    }
+
+    node = this._node(name);
+    content = node && (node.content || node.textContent);
+    src = node && node.getAttribute('data-src');
+
+    if (content) {
+      this.registerTemplate(name, content);
+      cb(name);
+      return
+    } else if(src) {
+      this.load(name, {url: src}, function(){
+        this.ensureTemplate(name, cb);
+      }.bind(this));
+    } else {
+      throw new Error("[PIE] Template fetch error: " + name);
+    }
+
+  },
+
   // **pie.templates.registerTemplate**
   //
   // Register a template containing the `content` by the `name`.
@@ -7432,28 +7546,11 @@ pie.templates = pie.model.extend('templates', {
   // </script>
   // ```
   renderAsync: function(name, data, cb) {
-
-    var content, node, src;
-
-    if(this.get(name)) {
+    this.ensureTemplate(name, function() {
       content = this.render(name, data);
       cb(content);
-      return;
-    }
-
-    node = this._node(name);
-    src = node && node.getAttribute('data-src');
-
-    if(src) {
-      this.load(name, {url: src}, function(){
-        this.renderAsync(name, data, cb);
-      }.bind(this));
-    } else {
-      content = this.render(name, data);
-      cb(content);
-      return;
-    }
-  },
+    }.bind(this));
+  }
 });
 // # Pie Validator
 // A collection of validators commonly used in web forms.

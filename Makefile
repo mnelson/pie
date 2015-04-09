@@ -3,7 +3,7 @@
 PATH  := node_modules/.bin:$(PATH)
 SHELL := /bin/bash
 
-source_files       := src/pie.js src/extensions/*.js src/mixins/*.js src/base.js src/app.js src/model.js src/config.js src/view.js src/activeView.js src/ajaxRequest.js src/ajax.js src/cache.js src/emitter.js src/errorHandler.js src/formView.js src/helpers.js src/i18n.js src/list.js src/navigator.js src/notifier.js src/resources.js src/route.js src/router.js src/routeHandler.js src/templates.js src/validator.js src/viewTransition.js
+source_files       := src/pie.js src/extensions/*.js src/mixins/*.js src/base.js src/app.js src/model.js src/config.js src/view.js src/activeView.js src/ajaxRequest.js src/ajax.js src/cache.js src/emitter.js src/errorHandler.js src/formView.js src/helpers.js src/i18n.js src/list.js src/listView.js src/navigator.js src/notifier.js src/resources.js src/route.js src/router.js src/routeHandler.js src/templates.js src/validator.js src/viewTransition.js
 amd_files          := src/amd/*.txt
 deploy             := build/pie.js.min
 debug              := build/pie.js

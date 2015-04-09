@@ -1,0 +1,1 @@
+pie.listView = pie.view.extend('listView', pie.mixins.activeView, pie.mixins.listView);

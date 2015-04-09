@@ -24,6 +24,32 @@ pie.templates = pie.model.extend('templates', {
     return pie.qs(this.options.templateSelector + '[id="' + name + '"]');
   },
 
+  ensureTemplate: function(name, cb) {
+    var node, content, src;
+
+    if(this.get(name)) {
+      cb(name);
+      return;
+    }
+
+    node = this._node(name);
+    content = node && (node.content || node.textContent);
+    src = node && node.getAttribute('data-src');
+
+    if (content) {
+      this.registerTemplate(name, content);
+      cb(name);
+      return
+    } else if(src) {
+      this.load(name, {url: src}, function(){
+        this.ensureTemplate(name, cb);
+      }.bind(this));
+    } else {
+      throw new Error("[PIE] Template fetch error: " + name);
+    }
+
+  },
+
   // **pie.templates.registerTemplate**
   //
   // Register a template containing the `content` by the `name`.
@@ -111,26 +137,9 @@ pie.templates = pie.model.extend('templates', {
   // </script>
   // ```
   renderAsync: function(name, data, cb) {
-
-    var content, node, src;
-
-    if(this.get(name)) {
+    this.ensureTemplate(name, function() {
       content = this.render(name, data);
       cb(content);
-      return;
-    }
-
-    node = this._node(name);
-    src = node && node.getAttribute('data-src');
-
-    if(src) {
-      this.load(name, {url: src}, function(){
-        this.renderAsync(name, data, cb);
-      }.bind(this));
-    } else {
-      content = this.render(name, data);
-      cb(content);
-      return;
-    }
-  },
+    }.bind(this));
+  }
 });
