@@ -3205,95 +3205,118 @@ pie.mixins.formView = {
   }
 
 };
-pie.mixins.listView = {
-  init: function() {
-    this._super.apply(this, arguments);
-    this.options.item = this.options.item || {};
-    this._ensureList();
-    this._ensureTemplate();
-  },
+// # Pie ListView
+//
+// A view mixin for easily managing a series of items. It assumes the activeView mixin has already been applied to your view.
+// ```
+// UserList = pie.view.extend(pie.mixins.activeView, pie.mixins.listView);
+// list = new UserList({
+//   template: 'userList',
+//   list: {
+//     containerSel: 'ul.js-user-list'
+//   },
+//   item: {
+//     templateName: 'userItem'
+//   }
+// });
+// ```
+pie.mixins.listView = (function(){
 
-  /* we build a list if one isn't present already */
-  _ensureList: function() {
-    this.list = this.list || this.options.list || new pie.list([]);
-  },
+  var _listItemClass;
+  var listItemClass = function(){
+    return _listItemClass = _listItemClass || pie.view.extend('defaultListItemView', pie.mixins.activeView);
+  };
+  return {
 
-  _ensureTemplate: function() {
-    if (this.options.template) return;
+    init: function() {
 
-    // TODO how is this gonna work
-    var name = 'listViewTemplate',
-      content = "<ul class='js-items-container'></ul>";
+      this._super.apply(this, arguments);
 
-    this.app.templates.registerTemplate(name, content);
-    this.options.item.uiTarget = '.js-items-container';
-    this.options.template = name;
-  },
+      this.options = pie.object.deepMerge({
+        listOptions: {
+          containerSel: 'ul, ol, .js-items-container',
+          loadingClass: 'is-loading',
+          modelAttribute: 'items'
+        },
+        itemOptions: {
+          viewClass: null,
+          template: null
+        }
+      }, this.options);
 
-  setup: function() {
-    this.onChange(this.list, this.renderItems.bind(this), '_version');
-    this.emitter.waitUntil('afterRender', 'afterAttach', this.renderItems.bind(this));
+      if(!this.options.itemOptions.viewClass && !this.options.itemOptions.template) {
+        throw new Error("No viewClass or template provided for the itemOptions");
+      }
 
-    this._super.apply(this, arguments);
-  },
+      this.list = this.list || new pie.list([]);
+    },
 
-  renderItems: function(templateName) {
-    var container = this.qs(this.options.item.uiTarget),
-      content;
+    setup: function() {
+      this.onChange(this.list, this.renderItems.bind(this), this.options.listOptions.modelAttribute);
+      this.emitter.on('afterRender', this.renderItems.bind(this));
 
-    // TODO this should be a transition
-    container.classList.add('is-loading');
-    this._removeItems();
-    this._addItems();
-    container.classList.remove('is-loading');
-  },
+      this._super.apply(this, arguments);
+    },
 
-  _addItems: function() {
-    var items = this.listData(),
-      klass = this.options.item.klass || this._defaultItemKlass(),
-      opts = {uiTarget: this.qs(this.options.item.uiTarget)};
+    addItems: function() {
+      var container = this.qs(this.options.listOptions.containerSel),
+        opts = pie.object.dup(this.options.itemOptions),
+        klass = opts.viewClass || listItemClass(),
+        afterRenders = [],
+        child;
 
-    items.forEach(function(data, i) {
-      this.addChild('item-' + i, new klass(opts, data));
-    }.bind(this));
-  },
+      delete opts.viewClass;
 
-  _removeItems: function() {
-    var regex = new RegExp('item');
+      this.listData().forEach(function(data, i) {
+        child = new klass(opts, data);
 
-    if(this.children.length) {
-      Object.keys(this.childNames).forEach(function(k) {
-        if(!regex.test(k)) return;
-        var child = this.getChild(k);
-        this.removeChild(k);
+        // we subscribe to each child's after render to understand when our "loading" style can be removed.
+        afterRenders.push(function(cb) {
+          child.emitter.once('afterRender', cb, {immediate: true});
+        });
+
+        this.addChild('list-item-' + i, child);
+
+        // we append to the dom before setup to preserve ordering.
+        child.appendToDom(container);
+        child.setup();
+
+      }.bind(this));
+
+      pie.fn.async(afterRenders, this.setListLoadingStyle.bind(this));
+    },
+
+    removeItems: function() {
+      var regex = /^list\-item\-/, child;
+
+      pie.array.grep(Object.keys(this.childNames), regex).forEach(function(name) {
+        child = this.getChild(name);
+        this.removeChild(child);
         child.teardown();
-      }.bind(this))
-    }
-  },
+      }.bind(this));
+    },
 
-  _defaultItemKlass: function() {
-    var tmpl = this.options.item.template;
+    renderItems: function(templateName) {
+      this.setListLoadingStyle(true);
+      this.removeItems();
+      this.addItems();
+    },
 
-    return pie.activeView.extend('listItemView', function(opts, data) {
-      this.model = new pie.model(data);
+    setListLoadingStyle: function(bool) {
+      var className = this.options.listOptions.loadingClass;
+      if(!className) return;
 
-      this._super({
-        renderOnSetup: true,
-        setup: true,
-        template: tmpl
-      });
-    });
-  },
+      var container = this.qs(this.options.listOptions.containerSel);
+      container.classList[bool ? 'add' : 'remove'](className);
+    },
 
-  listData: function() {
-    if (this.list) {
-      return this.list.get('items') || [];
+    listData: function() {
+      return this.list.get(this.options.listOptions.modelAttribute) || [];
     }
 
-    return [];
-  }
-
-};pie.mixins.validatable = {
+  };
+})();
+pie.mixins.validatable = {
 
   init: function() {
     this.validations = [];
@@ -6543,7 +6566,10 @@ pie.list = pie.model.extend('list', {
     return this.insert(0, value, options);
   }
 });
-pie.listView = pie.view.extend('listView', pie.mixins.activeView, pie.mixins.listView);// # Pie Navigator
+// listView has moved to a mixin, you should use the mixin rather than this class.
+// This class is being preserved for the sake of backwards compatability.
+pie.listView = pie.view.extend('listView', pie.mixins.activeView, pie.mixins.listView);
+// # Pie Navigator
 // The navigator is in charge of observing browser navigation and updating it's data.
 // It's also the place to conduct push/replaceState history changes.
 // The navigator is simply a model, enabling observation, computed values, etc.
