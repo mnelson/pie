@@ -217,7 +217,7 @@ pie.formView = pie.activeView.extend('formView', pie.mixins.bindings, {
   // By default, `model.validateAll` will be invoked but this can be overridden
   // to talk to external services, etc.
   validateModel: function(cb) {
-    this.model.validateAll(cb);
+    this.model.validateAll().then(cb);
   },
 
   // ** pie.formView.validateAndSubmitForm **

@@ -91,7 +91,7 @@ describe("pie.ajax", function() {
       jasmine.Ajax.uninstall();
     });
 
-    it("should not blow up if there is no csrf token in the dom", function() {
+    it("should not blow up if there is no csrf token in the dom", function(done) {
       var meta = document.querySelector('meta[name="csrf-token"]');
       if(meta) meta.parentNode.removeChild(meta);
 
@@ -100,49 +100,50 @@ describe("pie.ajax", function() {
       this.ajax.get({
         url: '/get-path',
         dataSuccess: doneFn
-      });
-
-      expect(doneFn).toHaveBeenCalledWith({'get' : 'response'});
+      }).complete(function(){
+        expect(doneFn).toHaveBeenCalledWith({'get' : 'response'});
+      }, done);
     });
 
-    it("should use the csrf token in the dom if it is present", function() {
+    it("should use the csrf token in the dom if it is present", function(done) {
       this.ajax.app.cache.set('csrfToken', undefined);
       var meta = pie.dom.createElement('<meta name="csrf-token" content="abcdefg" />'), request;
       document.querySelector('head').appendChild(meta);
 
-      this.ajax.get({ url: '/get-path' });
-
-      request = jasmine.Ajax.requests.mostRecent();
-      expect(request.requestHeaders['X-CSRF-Token']).toEqual('abcdefg');
+      this.ajax.get({ url: '/get-path' }).complete(function(){
+        request = jasmine.Ajax.requests.mostRecent();
+        expect(request.requestHeaders['X-CSRF-Token']).toEqual('abcdefg');
+      }, done);
     });
 
-    it("should set default options on the request", function() {
-      this.ajax.get({ url: '/get-path' });
+    it("should set default options on the request", function(done) {
+      this.ajax.get({ url: '/get-path' }).complete(function(){
 
-      var request = jasmine.Ajax.requests.mostRecent();
-      expect(request.requestHeaders['Accept']).toEqual('application/json');
-      expect(request.requestHeaders['Content-Type']).toEqual('application/json');
-      expect(request.method).toEqual('GET');
+        var request = jasmine.Ajax.requests.mostRecent();
+        expect(request.requestHeaders['Accept']).toEqual('application/json');
+        expect(request.requestHeaders['Content-Type']).toEqual('application/json');
+        expect(request.method).toEqual('GET');
+      }, done);
     });
 
-    it("should allow alternate formats to be sent", function() {
+    it("should allow alternate formats to be sent", function(done) {
       this.ajax.post({
         url: '/post-path-html',
         accept: 'text/html',
         data: "foo=bar&baz=qux",
         csrfToken: 'xyz',
         verb: 'POST'
-      });
-
-      var request = jasmine.Ajax.requests.mostRecent();
-      expect(request.requestHeaders['Accept']).toEqual('text/html');
-      expect(request.requestHeaders['Content-Type']).toEqual('application/x-www-form-urlencoded');
-      expect(request.method).toEqual('POST');
-      expect(request.params).toEqual('foo=bar&baz=qux');
-      expect(request.data).toEqual('<span>foo</span>');
+      }).complete(function(){
+        var request = jasmine.Ajax.requests.mostRecent();
+        expect(request.requestHeaders['Accept']).toEqual('text/html');
+        expect(request.requestHeaders['Content-Type']).toEqual('application/x-www-form-urlencoded');
+        expect(request.method).toEqual('POST');
+        expect(request.params).toEqual('foo=bar&baz=qux');
+        expect(request.data).toEqual('<span>foo</span>');
+      }, done);
     });
 
-    it("should allow a promise-style request to be conducted", function() {
+    it("should allow a promise-style request to be conducted", function(done) {
       var response, xhr, request = this.ajax.get('/get-path');
 
       request.dataSuccess(function(d) {
@@ -153,8 +154,10 @@ describe("pie.ajax", function() {
         xhr = x;
       });
 
-      expect(response).toEqual({get: 'response'});
-      expect(xhr).toEqual(request.xhr);
+      request.complete(function() {
+        expect(response).toEqual({get: 'response'});
+        expect(xhr).toEqual(request.xhr);
+      }, done);
     });
 
   });

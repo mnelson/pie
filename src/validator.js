@@ -253,7 +253,8 @@ pie.validator = pie.base.extend('validator', {
   // **pie.validator.fn**
   //
   // A generic function interface. This enables a function to be passed,
-  // along with all the normal options.
+  // along with all the normal options. Asynchronous functions should return
+  // a promise.
   // ```
   // var opts = {fn: function(v){ return v.length === 3; }};
   // validator.fn("foo", opts);
@@ -261,9 +262,9 @@ pie.validator = pie.base.extend('validator', {
   // validator.fn("foos", opts);
   // //=> false
   // ```
-  fn: function(value, options, cb) {
+  fn: function(value, options) {
     return this.withStandardChecks(value, options, function(){
-      return options.fn.call(null, value, options, cb);
+      return options.fn.call(null, value, options);
     });
   },
 

@@ -81,10 +81,9 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
     // upcase before we validate inclusion.
     if(this.get('verb')) this.set('verb', this.get('verb').toUpperCase());
 
-    this.validateAll(function(bool){
-      if(!bool) throw new Error(JSON.stringify(this.get('validationErrors')));
-      cb();
-    }.bind(this));
+    return this.validateAll().catch(function(){
+      throw new Error(JSON.stringify(this.get('validationErrors')));
+    });
   },
 
   _applyHeaders: function(xhr) {
@@ -206,7 +205,7 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
 
     this.xhr = xhr;
 
-    this.emitter.fire('xhrBuilt');
+    this.emitter.fire('xhrBuilt', xhr);
 
     return xhr;
   },
@@ -216,11 +215,9 @@ pie.ajaxRequest = pie.model.extend('ajaxRequest', {
   // By passing `skipSend = false` you can manage the `send()` invocation manually.
   build: function(options, skipSend) {
     this._parseOptions(options);
-    this._validateOptions(function(){
-      this._buildXhr();
-      if(!skipSend) this.send();
-    }.bind(this));
 
+    var p = this._validateOptions().then('_buildXhr');
+    if(!skipSend) p = p.then('send');
     return this;
   },
 
